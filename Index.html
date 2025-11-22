@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D&D Simplificado (Média 5)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: #1a0f0f url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" opacity="0.1"><rect fill="%238B6914" width="100" height="100"/><path fill="%23A52A2A" d="M0 0L100 100M100 0L0 100"/></svg>');
+            color: #2c1810;
+            line-height: 1.4;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            background: 
+                linear-gradient(135deg, #8B6914 0%, #A52A2A 50%, #4B0082 100%);
+            border-radius: 15px;
+            border: 3px solid #2c1810;
+            box-shadow: 
+                0 10px 30px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: #E6E6FA;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        .content-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .rules-section, .character-section {
+            background: 
+                linear-gradient(135deg, #F5F5DC 0%, #E6D7A8 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid #8B6914;
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.5);
+            position: relative;
+        }
+
+        h2 {
+            color: #4B0082;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            border-bottom: 2px solid #8B6914;
+            padding-bottom: 8px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        h3 {
+            color: #8B6914;
+            margin: 12px 0 6px 0;
+            font-size: 1.1rem;
+        }
+
+        .rule-card {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4B0082;
+        }
+
+        .race-grid, .class-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 12px 0;
+        }
+
+        .race-card, .class-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #8B6914;
+            border-radius: 6px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .race-card:hover, .class-card:hover {
+            border-color: #4B0082;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(75, 0, 130, 0.2);
+        }
+
+        .race-card.selected, .class-card.selected {
+            border-color: #4B0082;
+            background: rgba(75, 0, 130, 0.1);
+            box-shadow: 0 5px 15px rgba(75, 0, 130, 0.3);
+        }
+
+        .attributes-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .attribute-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #8B6914;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .attribute-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #8B6914;
+            margin: 5px 0;
+        }
+
+        .attribute-mod {
+            font-size: 1.1rem;
+            color: #4B0082;
+            font-weight: bold;
+        }
+
+        .character-sheet {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 2px solid #8B6914;
+        }
+
+        .sheet-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(139, 105, 20, 0.3);
+        }
+
+        .sheet-label {
+            font-weight: bold;
+            color: #4B0082;
+        }
+
+        .sheet-value {
+            color: #2c1810;
+        }
+
+        .combat-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .combat-stat {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #8B6914;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #8B6914;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #4B0082;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #8B6914 0%, #A52A2A 100%);
+            color: white;
+            margin: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #A52A2A 0%, #4B0082 100%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4B0082 0%, #8B6914 100%);
+            color: white;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .ancient-text {
+            font-family: 'Georgia', serif;
+            color: #2c1810;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .special-rule {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            border-left: 4px solid #A52A2A;
+        }
+
+        .hp-calculation {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #8B6914;
+            font-size: 0.9rem;
+        }
+
+        .calculation-breakdown {
+            font-family: monospace;
+            background: rgba(0,0,0,0.05);
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        .customization-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 2px dashed #4B0082;
+        }
+
+        .customization-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .customization-option {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #8B6914;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .customization-option:hover {
+            border-color: #4B0082;
+            background: rgba(75, 0, 130, 0.1);
+        }
+
+        .customization-option.selected {
+            border-color: #4B0082;
+            background: rgba(75, 0, 130, 0.2);
+            box-shadow: 0 3px 10px rgba(75, 0, 130, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .content-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .race-grid, .class-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .attributes-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .customization-options {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+        #pdf-sheet {
+            background: white;
+            padding: 30px;
+            margin: 20px auto;
+            max-width: 800px;
+            border: 2px solid #8B6914;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            display: none;
+        }
+
+        .pdf-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px double #8B6914;
+            padding-bottom: 20px;
+        }
+
+        .pdf-section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #8B6914;
+        }
+
+        .pdf-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .pdf-attribute {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #8B6914;
+            border-radius: 4px;
+        }
+
+        .pdf-combat-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .pdf-combat-stat {
+            text-align: center;
+            padding: 15px;
+            border: 2px solid #8B6914;
+            border-radius: 6px;
+            background: #f9f5e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="ancient-text">🎲 D&D Simplificado (Média 5)</h1>
+            <div class="subtitle ancient-text">Sistema de RPG simplificado com 5 habilidades e média 5</div>
+        </header>
+        
+        <div class="content-area">
+            <div class="rules-section">
+                <h2 class="ancient-text">📖 Regras do Sistema</h2>
+                
+                <div class="rule-card">
+                    <h3 class="ancient-text">🎯 Sistema de Habilidades</h3>
+                    <p class="ancient-text">O sistema utiliza 5 habilidades principais:</p>
+                    <ul class="ancient-text">
+                        <li><strong>FOR</strong> - Força: Combate corpo a corpo, atletismo</li>
+                        <li><strong>CON</strong> - Constituição: Vitalidade, resistência</li>
+                        <li><strong>DES</strong> - Destreza: Agilidade, furtividade, reflexos</li>
+                        <li><strong>MENTE</strong> - Inteligência/Sabedoria: Conhecimento, percepção, magia</li>
+                        <li><strong>CAR</strong> - Carisma: Persuasão, liderança, presença</li>
+                    </ul>
+                </div>
+
+                <div class="rule-card">
+                    <h3 class="ancient-text">🧮 Cálculo de Modificadores</h3>
+                    <p class="ancient-text"><strong>Modificador = Valor da Habilidade Final - 5</strong></p>
+                    <p class="ancient-text">Exemplo: FOR 7 → Modificador +2</p>
+                </div>
+
+                <div class="rule-card">
+                    <h3 class="ancient-text">❤️ Pontos de Vida (PV)</h3>
+                    <p class="ancient-text"><strong>PV = 10 (Base) + Bônus de PV da Classe + Modificador de CON Final</strong></p>
+                    <div class="hp-calculation">
+                        <strong>Exemplo de cálculo:</strong>
+                        <div class="calculation-breakdown">
+                            Base: 10<br>
+                            + Bônus Classe (Guerreiro): +6<br>
+                            + Mod. CON (CON 6 → +1): +1<br>
+                            = <strong>17 PV</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rule-card">
+                    <h3 class="ancient-text">⚔️ Sistema de Combate</h3>
+                    <p class="ancient-text"><strong>Ataque:</strong> 1d20 + Modificador de habilidade + Proficiência (se aplicável)</p>
+                    <p class="ancient-text"><strong>Dano:</strong> Varia pela arma + Modificador de habilidade</p>
+                    <p class="ancient-text"><strong>Classe de Armadura (CA):</strong> 10 + Modificador de DES + Bônus de armadura</p>
+                </div>
+
+                <h2 class="ancient-text">👥 Raças Disponíveis</h2>
+                <div class="race-grid" id="race-grid">
+                    <!-- Raças serão preenchidas por JavaScript -->
+                </div>
+
+                <h2 class="ancient-text">⚔️ Classes Disponíveis</h2>
+                <div class="class-grid" id="class-grid">
+                    <!-- Classes serão preenchidas por JavaScript -->
+                </div>
+            </div>
+            
+            <div class="character-section">
+                <h2 class="ancient-text">👤 Criador de Personagem</h2>
+                
+                <div class="rule-card">
+                    <h3 class="ancient-text">1. Escolha sua Raça</h3>
+                    <p class="ancient-text" id="selected-race">Nenhuma raça selecionada</p>
+                    <div id="race-customization" style="display: none;">
+                        <!-- Customização da raça será preenchida por JavaScript -->
+                    </div>
+                </div>
+
+                <div class="rule-card">
+                    <h3 class="ancient-text">2. Escolha sua Classe</h3>
+                    <p class="ancient-text" id="selected-class">Nenhuma classe selecionada</p>
+                </div>
+
+                <div class="rule-card">
+                    <h3 class="ancient-text">3. Atributos do Personagem</h3>
+                    <div class="attributes-grid" id="attributes-grid">
+                        <!-- Atributos serão preenchidos por JavaScript -->
+                    </div>
+                </div>
+
+                <div class="character-sheet">
+                    <h3 class="ancient-text">📜 Ficha do Personagem</h3>
+                    
+                    <div class="sheet-row">
+                        <span class="sheet-label">Raça:</span>
+                        <span class="sheet-value" id="sheet-race">---</span>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="sheet-label">Classe:</span>
+                        <span class="sheet-value" id="sheet-class">---</span>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="sheet-label">Nível:</span>
+                        <span class="sheet-value">1</span>
+                    </div>
+
+                    <div class="combat-stats">
+                        <div class="combat-stat">
+                            <div class="stat-value" id="sheet-pv">---</div>
+                            <div class="stat-label ancient-text">PONTOS DE VIDA</div>
+                        </div>
+                        <div class="combat-stat">
+                            <div class="stat-value" id="sheet-ca">---</div>
+                            <div class="stat-label ancient-text">CLASSE DE ARMADURA</div>
+                        </div>
+                    </div>
+
+                    <div class="sheet-row">
+                        <span class="sheet-label">Força (FOR):</span>
+                        <span class="sheet-value" id="sheet-for">---</span>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="sheet-label">Constituição (CON):</span>
+                        <span class="sheet-value" id="sheet-con">---</span>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="sheet-label">Destreza (DES):</span>
+                        <span class="sheet-value" id="sheet-des">---</span>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="sheet-label">Mente (MENTE):</span>
+                        <span class="sheet-value" id="sheet-men">---</span>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="sheet-label">Carisma (CAR):</span>
+                        <span class="sheet-value" id="sheet-car">---</span>
+                    </div>
+
+                    <div id="special-rule-container">
+                        <!-- Regra especial será preenchida por JavaScript -->
+                    </div>
+
+                    <button class="btn-primary" onclick="createCharacter()">
+                        🎲 Criar Personagem e Gerar PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template para PDF (invisível na página principal) -->
+    <div id="pdf-sheet">
+        <div class="pdf-header">
+            <h1>Ficha de Personagem - D&D Simplificado</h1>
+            <p>Sistema Média 5</p>
+        </div>
+        
+        <div class="pdf-section">
+            <h2>Informações Básicas</h2>
+            <div class="pdf-grid">
+                <div><strong>Nome:</strong> <span id="pdf-name">---</span></div>
+                <div><strong>Raça:</strong> <span id="pdf-race">---</span></div>
+                <div><strong>Classe:</strong> <span id="pdf-class">---</span></div>
+                <div><strong>Nível:</strong> 1</div>
+            </div>
+        </div>
+
+        <div class="pdf-section">
+            <h2>Atributos</h2>
+            <div class="pdf-grid">
+                <div class="pdf-attribute">
+                    <strong>FORÇA</strong><br>
+                    <span id="pdf-for">---</span>
+                </div>
+                <div class="pdf-attribute">
+                    <strong>CONSTITUIÇÃO</strong><br>
+                    <span id="pdf-con">---</span>
+                </div>
+                <div class="pdf-attribute">
+                    <strong>DESTREZA</strong><br>
+                    <span id="pdf-des">---</span>
+                </div>
+                <div class="pdf-attribute">
+                    <strong>MENTE</strong><br>
+                    <span id="pdf-men">---</span>
+                </div>
+                <div class="pdf-attribute">
+                    <strong>CARISMA</strong><br>
+                    <span id="pdf-car">---</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="pdf-section">
+            <h2>Combate</h2>
+            <div class="pdf-combat-stats">
+                <div class="pdf-combat-stat">
+                    <strong>PONTOS DE VIDA</strong><br>
+                    <span style="font-size: 24px;" id="pdf-pv">---</span>
+                </div>
+                <div class="pdf-combat-stat">
+                    <strong>CLASSE DE ARMADURA</strong><br>
+                    <span style="font-size: 24px;" id="pdf-ca">---</span>
+                </div>
+                <div class="pdf-combat-stat">
+                    <strong>INICIATIVA</strong><br>
+                    <span style="font-size: 24px;" id="pdf-iniciativa">---</span>
+                </div>
+                <div class="pdf-combat-stat">
+                    <strong>PROFICIÊNCIA</strong><br>
+                    <span style="font-size: 24px;">+2</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="pdf-section">
+            <h2>Habilidade Especial</h2>
+            <div id="pdf-special-rule">
+                <p>---</p>
+            </div>
+        </div>
+
+        <div class="pdf-section">
+            <h2>Cálculo de Pontos de Vida</h2>
+            <div id="pdf-hp-calculation">
+                <p>---</p>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; font-style: italic; color: #666;">
+            Personagem criado em D&D Simplificado (Média 5)
+        </div>
+    </div>
+
+    <script>
+        // Dados do sistema baseados no JSON fornecido
+        const systemData = {
+            nome_sistema: "D&D Simplificado (Média 5)",
+            regras_base: {
+                habilidades: ["FOR", "CON", "DES", "MENTE", "CAR"],
+                calculo_modificador: "Valor da Habilidade Final - 5",
+                ponto_neutro: 5,
+                calculo_pv: "10 (Base) + Bônus de PV da Classe + Modificador de CON Final"
+            },
+            racas: [
+                {
+                    nome: "Humano",
+                    atributos_base: { FOR: 5, CON: 5, DES: 5, MENTE: 5, CAR: 5 },
+                    bonus_customizacao_jogador: "Adiciona +1 em DUAS HABILIDADES diferentes à escolha do jogador."
+                },
+                {
+                    nome: "Elfo",
+                    atributos_base: { FOR: 4, CON: 5, DES: 6, MENTE: 7, CAR: 4 },
+                    bonus_customizacao_jogador: "Adiciona +1 em MENTE OU +1 em DES à escolha do jogador."
+                },
+                {
+                    nome: "Anão",
+                    atributos_base: { FOR: 6, CON: 7, DES: 4, MENTE: 5, CAR: 4 },
+                    bonus_customizacao_jogador: "Adiciona +1 em CON OU +1 em FOR à escolha do jogador."
+                },
+                {
+                    nome: "Orc",
+                    atributos_base: { FOR: 8, CON: 6, DES: 3, MENTE: 3, CAR: 3 },
+                    bonus_customizacao_jogador: "Adiciona +1 em FOR OU +1 em CON à escolha do jogador."
+                },
+                {
+                    nome: "Halfling",
+                    atributos_base: { FOR: 4, CON: 4, DES: 7, MENTE: 6, CAR: 5 },
+                    bonus_customizacao_jogador: "Adiciona +1 em DES OU +1 em CAR à escolha do jogador."
+                },
+                {
+                    nome: "Demônio",
+                    atributos_base: { FOR: 5, CON: 5, DES: 4, MENTE: 7, CAR: 7 },
+                    bonus_customizacao_jogador: "Adiciona +1 em CAR OU +1 em MENTE à escolha do jogador."
+                },
+                {
+                    nome: "Furries",
+                    atributos_base: { FOR: 6, CON: 4, DES: 8, MENTE: 4, CAR: 6 },
+                    bonus_customizacao_jogador: "Adiciona +1 em DES OU +1 em FOR à escolha do jogador."
+                }
+            ],
+            classes: [
+                {
+                    nome: "Bárbaro",
+                    bonus_atributos: { CON: 2, FOR: 1 },
+                    nota_bonus_atributos: "Bônus fixo da Classe, que DEVE ser somado após a customização da Raça.",
+                    bonus_pv: 8,
+                    regra_unica: "Fúria: +3 Dano, Dano reduzido pela metade (1 uso/descanso)."
+                },
+                {
+                    nome: "Guerreiro",
+                    bonus_atributos: { FOR: 2, DES: 1 },
+                    nota_bonus_atributos: "Bônus fixo da Classe, que DEVE ser somado após a customização da Raça.",
+                    bonus_pv: 6,
+                    regra_unica: "Ataque Extra: Duas vezes na mesma rodada (1 uso/descanso)."
+                },
+                {
+                    nome: "Ladino",
+                    bonus_atributos: { DES: 2, MENTE: 1 },
+                    nota_bonus_atributos: "Bônus fixo da Classe, que DEVE ser somado após a customização da Raça.",
+                    bonus_pv: 4,
+                    regra_unica: "Ataque Furtivo: Dobro de dano se o inimigo estiver distraído."
+                },
+                {
+                    nome: "Clérigo",
+                    bonus_atributos: { MENTE: 2, CON: 1 },
+                    nota_bonus_atributos: "Bônus fixo da Classe, que DEVE ser somado após a customização da Raça.",
+                    bonus_pv: 4,
+                    regra_unica: "Curar Feridas: Restaura 1d8 + Mod. MENTE PV (3 usos/descanso)."
+                },
+                {
+                    nome: "Druida",
+                    bonus_atributos: { MENTE: 2, CON: 1 },
+                    nota_bonus_atributos: "Bônus fixo da Classe, que DEVE ser somado após a customização da Raça.",
+                    bonus_pv: 4,
+                    regra_unica: "Forma Animal: Transforma-se por 3 rodadas. Ganha +2 CON (1 uso/descanso)."
+                },
+                {
+                    nome: "Artífice",
+                    bonus_atributos: { MENTE: 2, DES: 1 },
+                    nota_bonus_atributos: "Bônus fixo da Classe, que DEVE ser somado após a customização da Raça.",
+                    bonus_pv: 4,
+                    regra_unica: "Infusão: Encanta arma/armadura para +1 no ataque/CA (1 uso/descanso)."
+                },
+                {
+                    nome: "Feiticeiro",
+                    bonus_atributos: { CAR: 3 },
+                    nota_bonus_atributos: "Bônus fixo da Classe, que DEVE ser somado após a customização da Raça.",
+                    bonus_pv: 2,
+                    regra_unica: "Magia Pura: Pode relançar um teste de Magia falho (1 uso/descanso)."
+                },
+                {
+                    nome: "Mago",
+                    bonus_atributos: { MENTE: 3 },
+                    nota_bonus_atributos: "Bônus fixo da Classe, que DEVE ser somado após a customização da Raça.",
+                    bonus_pv: 2,
+                    regra_unica: "Magia Inteligente: Lança uma magia extra (Ataque/Defesa) (1 uso/descanso)."
+                }
+            ]
+        };
+
+        // Estado do personagem
+        let character = {
+            race: null,
+            class: null,
+            attributes: {
+                FOR: 5,
+                CON: 5,
+                DES: 5,
+                MENTE: 5,
+                CAR: 5
+            },
+            name: "Aventureiro",
+            raceCustomization: []
+        };
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            populateRaces();
+            populateClasses();
+            populateAttributes();
+            updateCharacterSheet();
+        });
+
+        function populateRaces() {
+            const raceGrid = document.getElementById('race-grid');
+            raceGrid.innerHTML = '';
+            
+            systemData.racas.forEach(race => {
+                const raceCard = document.createElement('div');
+                raceCard.className = 'race-card';
+                raceCard.innerHTML = `
+                    <h3 class="ancient-text">${race.nome}</h3>
+                    <p class="ancient-text"><small>
+                        FOR: ${race.atributos_base.FOR} | 
+                        CON: ${race.atributos_base.CON} | 
+                        DES: ${race.atributos_base.DES} | 
+                        MENTE: ${race.atributos_base.MENTE} | 
+                        CAR: ${race.atributos_base.CAR}
+                    </small></p>
+                    <p class="ancient-text" style="font-size: 0.8rem; color: #4B0082; margin-top: 5px;">
+                        <strong>Customização:</strong> ${race.bonus_customizacao_jogador}
+                    </p>
+                `;
+                raceCard.addEventListener('click', () => selectRace(race));
+                raceGrid.appendChild(raceCard);
+            });
+        }
+
+        function populateClasses() {
+            const classGrid = document.getElementById('class-grid');
+            classGrid.innerHTML = '';
+            
+            systemData.classes.forEach(cls => {
+                const classCard = document.createElement('div');
+                classCard.className = 'class-card';
+                
+                let bonusText = '';
+                Object.keys(cls.bonus_atributos).forEach(attr => {
+                    bonusText += `${attr}: +${cls.bonus_atributos[attr]} `;
+                });
+                
+                classCard.innerHTML = `
+                    <h3 class="ancient-text">${cls.nome}</h3>
+                    <p class="ancient-text"><small>Bônus: ${bonusText}</small></p>
+                    <p class="ancient-text"><small>PV: +${cls.bonus_pv}</small></p>
+                    <p class="ancient-text"><small>${cls.regra_unica}</small></p>
+                    <p class="ancient-text" style="font-size: 0.7rem; color: #A52A2A; margin-top: 5px;">
+                        <em>${cls.nota_bonus_atributos}</em>
+                    </p>
+                `;
+                classCard.addEventListener('click', () => selectClass(cls));
+                classGrid.appendChild(classCard);
+            });
+        }
+
+        function populateAttributes() {
+            const attributesGrid = document.getElementById('attributes-grid');
+            attributesGrid.innerHTML = '';
+            
+            systemData.regras_base.habilidades.forEach(attr => {
+                const attributeCard = document.createElement('div');
+                attributeCard.className = 'attribute-card';
+                const mod = calculateModifier(character.attributes[attr]);
+                
+                attributeCard.innerHTML = `
+                    <h3 class="ancient-text">${attr}</h3>
+                    <div class="attribute-value">${character.attributes[attr]}</div>
+                    <div class="attribute-mod">${mod >= 0 ? '+' + mod : mod}</div>
+                `;
+                
+                attributesGrid.appendChild(attributeCard);
+            });
+        }
+
+        function selectRace(race) {
+            character.race = race;
+            character.raceCustomization = [];
+            
+            // Atualizar atributos base da raça
+            character.attributes = { ...race.atributos_base };
+            
+            // Atualizar seleção visual
+            document.querySelectorAll('.race-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            // Atualizar display
+            document.getElementById('selected-race').textContent = race.nome;
+            
+            // Mostrar opções de customização
+            showRaceCustomization(race);
+            
+            populateAttributes();
+            updateCharacterSheet();
+        }
+
+        function showRaceCustomization(race) {
+            const customizationContainer = document.getElementById('race-customization');
+            customizationContainer.style.display = 'block';
+            customizationContainer.innerHTML = `
+                <div class="customization-section">
+                    <h4 class="ancient-text">🎯 Customização da Raça</h4>
+                    <p class="ancient-text">${race.bonus_customizacao_jogador}</p>
+                    <div class="customization-options" id="customization-options">
+                        ${generateCustomizationOptions(race)}
+                    </div>
+                </div>
+            `;
+
+            // Adicionar event listeners para as opções de customização
+            document.querySelectorAll('.customization-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const selectedAttr = this.dataset.attribute;
+                    handleCustomizationSelection(race, selectedAttr);
+                });
+            });
+        }
+
+        function generateCustomizationOptions(race) {
+            let optionsHTML = '';
+            
+            if (race.nome === "Humano") {
+                // Humano pode escolher duas habilidades diferentes
+                systemData.regras_base.habilidades.forEach(attr => {
+                    optionsHTML += `
+                        <div class="customization-option" data-attribute="${attr}">
+                            <strong>+1 ${attr}</strong>
+                        </div>
+                    `;
+                });
+            } else {
+                // Outras raças têm opções específicas
+                const options = race.bonus_customizacao_jogador.split('OU');
+                options.forEach(option => {
+                    const attr = option.match(/[A-Z]{2,}/)[0];
+                    if (attr) {
+                        optionsHTML += `
+                            <div class="customization-option" data-attribute="${attr}">
+                                <strong>${option.trim()}</strong>
+                            </div>
+                        `;
+                    }
+                });
+            }
+            
+            return optionsHTML;
+        }
+
+        function handleCustomizationSelection(race, selectedAttr) {
+            if (race.nome === "Humano") {
+                // Humano pode selecionar até 2 habilidades diferentes
+                if (character.raceCustomization.includes(selectedAttr)) {
+                    // Desselecionar se já estiver selecionado
+                    character.raceCustomization = character.raceCustomization.filter(attr => attr !== selectedAttr);
+                } else if (character.raceCustomization.length < 2) {
+                    // Selecionar se tiver menos de 2
+                    character.raceCustomization.push(selectedAttr);
+                } else {
+                    alert('Como Humano, você pode selecionar apenas DUAS habilidades diferentes.');
+                    return;
+                }
+            } else {
+                // Outras raças selecionam apenas uma opção
+                character.raceCustomization = [selectedAttr];
+            }
+            
+            // Atualizar seleção visual
+            document.querySelectorAll('.customization-option').forEach(option => {
+                option.classList.remove('selected');
+                if (character.raceCustomization.includes(option.dataset.attribute)) {
+                    option.classList.add('selected');
+                }
+            });
+            
+            // Aplicar customização aos atributos
+            applyRaceCustomization();
+            populateAttributes();
+            updateCharacterSheet();
+        }
+
+        function applyRaceCustomization() {
+            if (!character.race) return;
+            
+            // Reset para atributos base da raça
+            character.attributes = { ...character.race.atributos_base };
+            
+            // Aplicar customização
+            character.raceCustomization.forEach(attr => {
+                character.attributes[attr] += 1;
+            });
+            
+            // Aplicar bônus da classe se já selecionada
+            if (character.class) {
+                Object.keys(character.class.bonus_atributos).forEach(attr => {
+                    character.attributes[attr] += character.class.bonus_atributos[attr];
+                });
+            }
+        }
+
+        function selectClass(cls) {
+            character.class = cls;
+            
+            // Aplicar bônus de classe aos atributos (após customização da raça)
+            applyRaceCustomization();
+            
+            // Atualizar seleção visual
+            document.querySelectorAll('.class-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            // Atualizar display
+            document.getElementById('selected-class').textContent = cls.nome;
+            populateAttributes();
+            updateCharacterSheet();
+        }
+
+        function calculateModifier(value) {
+            return value - systemData.regras_base.ponto_neutro;
+        }
+
+        function calculateHP() {
+            if (!character.class) return { total: 10, breakdown: "Base: 10" };
+            
+            const conMod = calculateModifier(character.attributes.CON);
+            const total = 10 + character.class.bonus_pv + conMod;
+            const breakdown = `Base: 10 + Bônus Classe: ${character.class.bonus_pv} + Mod. CON: ${conMod} = ${total}`;
+            
+            return { total, breakdown };
+        }
+
+        function calculateCA() {
+            const desMod = calculateModifier(character.attributes.DES);
+            return 10 + desMod;
+        }
+
+        function calculateIniciativa() {
+            const desMod = calculateModifier(character.attributes.DES);
+            return desMod;
+        }
+
+        function updateCharacterSheet() {
+            if (character.race) {
+                document.getElementById('sheet-race').textContent = character.race.nome;
+            }
+            
+            if (character.class) {
+                document.getElementById('sheet-class').textContent = character.class.nome;
+            }
+            
+            // Atualizar atributos na ficha
+            systemData.regras_base.habilidades.forEach(attr => {
+                const value = character.attributes[attr];
+                const mod = calculateModifier(value);
+                const display = `${value} (${mod >= 0 ? '+' + mod : mod})`;
+                document.getElementById(`sheet-${attr.toLowerCase()}`).textContent = display;
+            });
+            
+            // Atualizar PV e CA
+            const hp = calculateHP();
+            document.getElementById('sheet-pv').textContent = hp.total;
+            document.getElementById('sheet-ca').textContent = calculateCA();
+            
+            // Atualizar regra especial
+            const specialRuleContainer = document.getElementById('special-rule-container');
+            if (character.class) {
+                specialRuleContainer.innerHTML = `
+                    <div class="special-rule">
+                        <h4 class="ancient-text">🎯 Regra Especial da Classe</h4>
+                        <p class="ancient-text">${character.class.regra_unica}</p>
+                    </div>
+                    <div class="hp-calculation">
+                        <h4 class="ancient-text">❤️ Cálculo de Pontos de Vida</h4>
+                        <div class="calculation-breakdown">${hp.breakdown}</div>
+                    </div>
+                `;
+            } else {
+                specialRuleContainer.innerHTML = '';
+            }
+        }
+
+        function createCharacter() {
+            if (!character.race || !character.class) {
+                alert('Por favor, selecione uma raça e uma classe!');
+                return;
+            }
+            
+            // Verificar customização para Humanos
+            if (character.race.nome === "Humano" && character.raceCustomization.length !== 2) {
+                alert('Como Humano, você deve selecionar EXATAMENTE DUAS habilidades para customização!');
+                return;
+            }
+            
+            // Verificar customização para outras raças
+            if (character.race.nome !== "Humano" && character.raceCustomization.length !== 1) {
+                alert(`Por favor, selecione uma opção de customização para ${character.race.nome}!`);
+                return;
+            }
+            
+            // Perguntar nome do personagem
+            const name = prompt('Digite o nome do seu personagem:', character.name);
+            if (name) {
+                character.name = name;
+            }
+            
+            // Preparar dados para o PDF
+            preparePDFData();
+            
+            // Gerar PDF
+            generatePDF();
+            
+            alert(`🎉 Personagem "${character.name}" criado com sucesso!\n\nPDF gerado e pronto para download.`);
+        }
+
+        function preparePDFData() {
+            const hp = calculateHP();
+            const ca = calculateCA();
+            const iniciativa = calculateIniciativa();
+            
+            // Preencher dados do PDF
+            document.getElementById('pdf-name').textContent = character.name;
+            document.getElementById('pdf-race').textContent = character.race.nome;
+            document.getElementById('pdf-class').textContent = character.class.nome;
+            
+            // Atributos
+            systemData.regras_base.habilidades.forEach(attr => {
+                const value = character.attributes[attr];
+                const mod = calculateModifier(value);
+                const display = `${value} (${mod >= 0 ? '+' + mod : mod})`;
+                document.getElementById(`pdf-${attr.toLowerCase()}`).textContent = display;
+            });
+            
+            // Combate
+            document.getElementById('pdf-pv').textContent = hp.total;
+            document.getElementById('pdf-ca').textContent = ca;
+            document.getElementById('pdf-iniciativa').textContent = iniciativa >= 0 ? `+${iniciativa}` : iniciativa;
+            
+            // Regra especial
+            document.getElementById('pdf-special-rule').innerHTML = `<p>${character.class.regra_unica}</p>`;
+            
+            // Cálculo de PV
+            document.getElementById('pdf-hp-calculation').innerHTML = `<p>${hp.breakdown}</p>`;
+        }
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Configurações do PDF
+            doc.setFont('helvetica');
+            doc.setFontSize(20);
+            doc.setTextColor(75, 0, 130);
+            doc.text('Ficha de Personagem - D&D Simplificado', 105, 20, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.setTextColor(139, 105, 20);
+            doc.text('Sistema Média 5', 105, 28, { align: 'center' });
+            
+            // Linha decorativa
+            doc.setDrawColor(139, 105, 20);
+            doc.setLineWidth(0.5);
+            doc.line(20, 35, 190, 35);
+            
+            // Informações básicas
+            doc.setFontSize(14);
+            doc.setTextColor(75, 0, 130);
+            doc.text('Informações Básicas', 20, 45);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Nome: ${character.name}`, 20, 55);
+            doc.text(`Raça: ${character.race.nome}`, 20, 62);
+            doc.text(`Classe: ${character.class.nome}`, 100, 55);
+            doc.text(`Nível: 1`, 100, 62);
+            
+            // Customização da raça
+            if (character.raceCustomization.length > 0) {
+                let customizationText = "Customização: ";
+                if (character.race.nome === "Humano") {
+                    customizationText += `+1 em ${character.raceCustomization.join(" e +1 em ")}`;
+                } else {
+                    customizationText += `+1 em ${character.raceCustomization[0]}`;
+                }
+                doc.text(customizationText, 20, 72);
+            }
+            
+            // Atributos
+            doc.setFontSize(14);
+            doc.setTextColor(75, 0, 130);
+            doc.text('Atributos', 20, 85);
+            
+            let yPos = 95;
+            systemData.regras_base.habilidades.forEach(attr => {
+                const value = character.attributes[attr];
+                const mod = calculateModifier(value);
+                const display = `${attr}: ${value} (${mod >= 0 ? '+' + mod : mod})`;
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.text(display, 20, yPos);
+                yPos += 8;
+            });
+            
+            // Combate
+            doc.setFontSize(14);
+            doc.setTextColor(75, 0, 130);
+            doc.text('Combate', 20, 145);
+            
+            const hp = calculateHP();
+            const ca = calculateCA();
+            const iniciativa = calculateIniciativa();
+            
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Pontos de Vida: ${hp.total}`, 20, 155);
+            doc.text(`Classe de Armadura: ${ca}`, 20, 163);
+            doc.text(`Iniciativa: ${iniciativa >= 0 ? '+' + iniciativa : iniciativa}`, 20, 171);
+            doc.text(`Proficiência: +2`, 20, 179);
+            
+            // Habilidade Especial
+            doc.setFontSize(14);
+            doc.setTextColor(75, 0, 130);
+            doc.text('Habilidade Especial', 20, 195);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            const specialRuleLines = doc.splitTextToSize(character.class.regra_unica, 170);
+            doc.text(specialRuleLines, 20, 205);
+            
+            // Cálculo de PV
+            let hpYPos = 205 + (specialRuleLines.length * 5) + 10;
+            doc.setFontSize(14);
+            doc.setTextColor(75, 0, 130);
+            doc.text('Cálculo de Pontos de Vida', 20, hpYPos);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            const hpLines = doc.splitTextToSize(hp.breakdown, 170);
+            doc.text(hpLines, 20, hpYPos + 10);
+            
+            // Rodapé
+            doc.setFontSize(8);
+            doc.setTextColor(102, 102, 102);
+            doc.setFontStyle('italic');
+            doc.text('Personagem criado em D&D Simplificado (Média 5)', 105, 280, { align: 'center' });
+            
+            // Salvar PDF
+            doc.save(`ficha-${character.name.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+        }
+    </script>
+</body>
+</html>
