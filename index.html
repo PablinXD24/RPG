@@ -489,6 +489,373 @@
             padding-right: 35px;
         }
 
+        /* Nova Aba - Ficha de Personagem */
+        .character-tab {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%);
+            z-index: 2000;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .character-tab.active {
+            display: block;
+        }
+
+        .tab-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .tab-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem;
+            color: var(--text-light);
+        }
+
+        .close-tab {
+            background: var(--accent-burgundy);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .character-sheet-detailed {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .sheet-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--accent-gold);
+        }
+
+        .sheet-section h3 {
+            color: var(--accent-purple);
+            margin-bottom: 12px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: var(--accent-purple);
+            min-width: 100px;
+        }
+
+        .info-value {
+            color: var(--text-dark);
+            flex: 1;
+            border: 1px solid transparent;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .info-value:focus {
+            border-color: var(--accent-purple);
+            background: rgba(107, 70, 193, 0.1);
+            outline: none;
+        }
+
+        .info-value.editable:hover {
+            border-color: var(--accent-gold);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .attributes-detailed {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .attribute-detailed {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid var(--accent-gold);
+            position: relative;
+        }
+
+        .attribute-name {
+            font-size: 0.9rem;
+            color: var(--accent-purple);
+            font-weight: bold;
+        }
+
+        .attribute-value-detailed {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent-burgundy);
+            margin: 8px 0;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 4px;
+            transition: var(--transition);
+            width: 60px;
+            margin: 8px auto;
+            text-align: center;
+        }
+
+        .attribute-value-detailed:focus {
+            border-color: var(--accent-purple);
+            background: rgba(107, 70, 193, 0.1);
+            outline: none;
+        }
+
+        .attribute-value-detailed:hover {
+            border-color: var(--accent-gold);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .attribute-mod-detailed {
+            font-size: 1.1rem;
+            color: var(--accent-purple);
+            font-weight: bold;
+        }
+
+        .combat-stats-detailed {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .combat-stat-detailed {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            border: 3px solid var(--accent-gold);
+            position: relative;
+        }
+
+        .stat-value-detailed {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent-burgundy);
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 4px;
+            transition: var(--transition);
+            margin: 0 auto;
+            width: 80px;
+            text-align: center;
+        }
+
+        .stat-value-detailed:focus {
+            border-color: var(--accent-purple);
+            background: rgba(107, 70, 193, 0.1);
+            outline: none;
+        }
+
+        .stat-value-detailed:hover {
+            border-color: var(--accent-gold);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .stat-label-detailed {
+            font-size: 0.9rem;
+            color: var(--accent-purple);
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        .abilities-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        .ability-item {
+            margin-bottom: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 6px;
+            border-left: 4px solid var(--accent-purple);
+        }
+
+        .ability-name {
+            font-weight: bold;
+            color: var(--accent-burgundy);
+            margin-bottom: 4px;
+        }
+
+        .ability-description {
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 8px;
+            transition: var(--transition);
+            min-height: 40px;
+        }
+
+        .ability-description:focus {
+            border-color: var(--accent-purple);
+            background: rgba(107, 70, 193, 0.1);
+            outline: none;
+        }
+
+        .ability-description:hover {
+            border-color: var(--accent-gold);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .inventory-detailed {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        .inventory-item-detailed {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+
+        .item-name-detailed {
+            flex: 1;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 4px 8px;
+            transition: var(--transition);
+        }
+
+        .item-name-detailed:focus {
+            border-color: var(--accent-purple);
+            background: rgba(107, 70, 193, 0.1);
+            outline: none;
+        }
+
+        .item-name-detailed:hover {
+            border-color: var(--accent-gold);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .item-weight-detailed {
+            color: var(--accent-purple);
+            font-weight: bold;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 4px 8px;
+            width: 60px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .item-weight-detailed:focus {
+            border-color: var(--accent-purple);
+            background: rgba(107, 70, 193, 0.1);
+            outline: none;
+        }
+
+        .item-weight-detailed:hover {
+            border-color: var(--accent-gold);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .item-controls-detailed {
+            display: flex;
+            gap: 6px;
+        }
+
+        .item-controls-detailed button {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            margin: 0;
+        }
+
+        .add-item-detailed {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .add-item-detailed input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--primary-light);
+            border-radius: 4px;
+            font-family: 'Lato', sans-serif;
+        }
+
+        .notes-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        .notes-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid var(--primary-light);
+            border-radius: 6px;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: var(--transition);
+        }
+
+        .notes-textarea:focus {
+            border-color: var(--accent-purple);
+            background: rgba(107, 70, 193, 0.1);
+            outline: none;
+        }
+
+        .notes-textarea:hover {
+            border-color: var(--accent-gold);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .save-button {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 16px;
+            width: 100%;
+            font-size: 1rem;
+        }
+
         /* Media Queries para tablets */
         @media (min-width: 768px) {
             body {
@@ -564,6 +931,19 @@
             .mobile-menu {
                 display: none;
             }
+
+            /* Nova Aba - Tablet */
+            .attributes-detailed {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .combat-stats-detailed {
+                grid-template-columns: repeat(4, 1fr);
+            }
         }
 
         @media (min-width: 1024px) {
@@ -578,6 +958,15 @@
             
             .weight-limits {
                 grid-template-columns: repeat(4, 1fr);
+            }
+
+            /* Nova Aba - Desktop */
+            .attributes-detailed {
+                grid-template-columns: repeat(5, 1fr);
+            }
+
+            .info-grid {
+                grid-template-columns: repeat(3, 1fr);
             }
         }
 
@@ -747,8 +1136,8 @@
 
                     <div id="special-rule-container" class="mt-1"></div>
 
-                    <button class="btn-primary" onclick="createCharacter()">
-                        🎲 Criar Personagem (PDF)
+                    <button class="btn-primary" onclick="openCharacterTab()">
+                        🎲 Abrir Ficha Editável
                     </button>
                 </div>
             </div>
@@ -879,6 +1268,107 @@
         </div>
     </div>
 
+    <!-- Nova Aba - Ficha de Personagem Editável -->
+    <div class="character-tab" id="character-tab">
+        <div class="container">
+            <div class="tab-header">
+                <h1 class="tab-title">📜 Ficha Editável do Personagem</h1>
+                <button class="close-tab" onclick="closeCharacterTab()">✕ Fechar</button>
+            </div>
+
+            <div class="character-sheet-detailed">
+                <div class="sheet-section">
+                    <h3>👤 Informações Básicas</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Nome:</span>
+                            <input type="text" class="info-value editable" id="tab-name" value="Aventureiro" onchange="updateCharacterData()">
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Raça:</span>
+                            <span class="info-value" id="tab-race">---</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Classe:</span>
+                            <span class="info-value" id="tab-class">---</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Armadura:</span>
+                            <span class="info-value" id="tab-armor">---</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Nível:</span>
+                            <input type="number" class="info-value editable" id="tab-level" value="1" min="1" max="20" onchange="updateCharacterData()">
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Experiência:</span>
+                            <input type="number" class="info-value editable" id="tab-xp" value="0" min="0" onchange="updateCharacterData()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sheet-section">
+                    <h3>🎯 Atributos</h3>
+                    <div class="attributes-detailed" id="attributes-detailed">
+                        <!-- Preenchido por JS -->
+                    </div>
+                </div>
+
+                <div class="sheet-section">
+                    <h3>⚔️ Combate</h3>
+                    <div class="combat-stats-detailed">
+                        <div class="combat-stat-detailed">
+                            <input type="number" class="stat-value-detailed" id="tab-pv" value="10" min="0" onchange="updateCharacterData()">
+                            <div class="stat-label-detailed">PONTOS DE VIDA</div>
+                        </div>
+                        <div class="combat-stat-detailed">
+                            <input type="number" class="stat-value-detailed" id="tab-ca" value="10" min="0" onchange="updateCharacterData()">
+                            <div class="stat-label-detailed">CLASSE ARMADURA</div>
+                        </div>
+                        <div class="combat-stat-detailed">
+                            <input type="number" class="stat-value-detailed" id="tab-pv-max" value="10" min="0" onchange="updateCharacterData()">
+                            <div class="stat-label-detailed">PV MÁXIMO</div>
+                        </div>
+                        <div class="combat-stat-detailed">
+                            <input type="number" class="stat-value-detailed" id="tab-iniciativa" value="0" onchange="updateCharacterData()">
+                            <div class="stat-label-detailed">INICIATIVA</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sheet-section">
+                    <h3>✨ Habilidades Especiais</h3>
+                    <div class="abilities-section" id="abilities-section">
+                        <!-- Preenchido por JS -->
+                    </div>
+                </div>
+
+                <div class="sheet-section">
+                    <h3>🎒 Inventário</h3>
+                    <div class="inventory-detailed" id="inventory-detailed">
+                        <!-- Preenchido por JS -->
+                    </div>
+                    <div class="add-item-detailed">
+                        <input type="text" id="new-item-name" placeholder="Nome do item">
+                        <input type="number" id="new-item-weight" placeholder="Peso (kg)" step="0.1" min="0">
+                        <button onclick="addItemDetailed()">+</button>
+                    </div>
+                </div>
+
+                <div class="sheet-section">
+                    <h3>📝 Anotações</h3>
+                    <div class="notes-section">
+                        <textarea class="notes-textarea" id="tab-notes" placeholder="Anotações sobre o personagem, missões, tesouros, aliados, etc..." onchange="updateCharacterData()"></textarea>
+                    </div>
+                </div>
+
+                <button class="save-button" onclick="saveCharacterData()">
+                    💾 Salvar Alterações
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Menu Mobile -->
     <div class="mobile-menu">
         <button onclick="scrollToSection('rules')">
@@ -893,8 +1383,8 @@
         <button onclick="scrollToSection('weight')">
             ⚖️ <span>Peso</span>
         </button>
-        <button onclick="createCharacter()">
-            🎲 <span>PDF</span>
+        <button onclick="openCharacterTab()">
+            📜 <span>Ficha</span>
         </button>
     </div>
 
@@ -1014,7 +1504,16 @@
             attributes: { FOR: 5, CON: 5, DES: 5, MENTE: 5, CAR: 5 },
             name: "Aventureiro",
             raceCustomization: [],
-            inventory: [] // Inventário começa vazio
+            inventory: [], // Inventário começa vazio
+            // Novos campos para a ficha editável
+            level: 1,
+            xp: 0,
+            pv: 10,
+            pvMax: 10,
+            ca: 10,
+            iniciativa: 0,
+            notes: "",
+            customAbilities: []
         };
 
         // Inicialização
@@ -1026,6 +1525,7 @@
             updateCharacterSheet();
             updateCalculator();
             updateWeightSystem();
+            loadCharacterData();
         });
 
         // Funções de navegação mobile
@@ -1372,16 +1872,186 @@
             updateWeightSystem();
         }
 
-        function createCharacter() {
+        // Nova Aba - Ficha de Personagem Editável
+        function openCharacterTab() {
             if (!character.race || !character.class) {
                 alert('Selecione uma raça e classe primeiro!');
                 return;
             }
             
-            const name = prompt('Nome do personagem:', character.name);
-            if (name) character.name = name;
+            updateCharacterTab();
+            document.getElementById('character-tab').classList.add('active');
+        }
+
+        function closeCharacterTab() {
+            document.getElementById('character-tab').classList.remove('active');
+        }
+
+        function updateCharacterTab() {
+            // Informações básicas
+            document.getElementById('tab-name').value = character.name;
+            document.getElementById('tab-race').textContent = character.race?.nome || '---';
+            document.getElementById('tab-class').textContent = character.class?.nome || '---';
+            document.getElementById('tab-armor').textContent = systemData.armaduras[character.armor].display;
+            document.getElementById('tab-level').value = character.level;
+            document.getElementById('tab-xp').value = character.xp;
             
-            alert(`Personagem "${character.name}" criado!\n\nPV: ${document.getElementById('sheet-pv').textContent}\nCA: ${document.getElementById('sheet-ca').textContent}\n\nEm uma versão completa, seria gerado um PDF.`);
+            // Atributos
+            const attributesContainer = document.getElementById('attributes-detailed');
+            attributesContainer.innerHTML = '';
+            
+            ['FOR', 'CON', 'DES', 'MENTE', 'CAR'].forEach(attr => {
+                const value = character.attributes[attr];
+                const mod = value - 5;
+                const card = document.createElement('div');
+                card.className = 'attribute-detailed';
+                card.innerHTML = `
+                    <div class="attribute-name">${attr}</div>
+                    <input type="number" class="attribute-value-detailed" value="${value}" min="1" max="20" data-attribute="${attr}" onchange="updateAttribute(this)">
+                    <div class="attribute-mod-detailed">${mod >= 0 ? '+' + mod : mod}</div>
+                `;
+                attributesContainer.appendChild(card);
+            });
+            
+            // Combate
+            document.getElementById('tab-pv').value = character.pv;
+            document.getElementById('tab-ca').value = character.ca;
+            document.getElementById('tab-pv-max').value = character.pvMax;
+            document.getElementById('tab-iniciativa').value = character.iniciativa;
+            
+            // Habilidades
+            const abilitiesContainer = document.getElementById('abilities-section');
+            abilitiesContainer.innerHTML = '';
+            
+            if (character.race) {
+                const raceAbility = document.createElement('div');
+                raceAbility.className = 'ability-item';
+                raceAbility.innerHTML = `
+                    <div class="ability-name">🏹 ${character.race.nome}</div>
+                    <div class="ability-description" contenteditable="true" onblur="updateCharacterData()">${character.race.habilidades}</div>
+                `;
+                abilitiesContainer.appendChild(raceAbility);
+            }
+            
+            if (character.class) {
+                const classAbility = document.createElement('div');
+                classAbility.className = 'ability-item';
+                classAbility.innerHTML = `
+                    <div class="ability-name">⚔️ ${character.class.nome}</div>
+                    <div class="ability-description" contenteditable="true" onblur="updateCharacterData()">${character.class.regra_unica}</div>
+                `;
+                abilitiesContainer.appendChild(classAbility);
+            }
+            
+            // Adicionar campo para habilidades customizadas
+            const customAbility = document.createElement('div');
+            customAbility.className = 'ability-item';
+            customAbility.innerHTML = `
+                <div class="ability-name">✨ Habilidades Customizadas</div>
+                <div class="ability-description" contenteditable="true" placeholder="Adicione outras habilidades, talentos, magias..." onblur="updateCharacterData()">${character.customAbilities.join('\n')}</div>
+            `;
+            abilitiesContainer.appendChild(customAbility);
+            
+            // Inventário
+            const inventoryContainer = document.getElementById('inventory-detailed');
+            inventoryContainer.innerHTML = '';
+            
+            if (character.inventory.length === 0) {
+                inventoryContainer.innerHTML = `
+                    <div class="empty-inventory">
+                        <p>🎁 Inventário vazio</p>
+                        <p class="text-xsmall mt-1">Adicione itens abaixo</p>
+                    </div>
+                `;
+            } else {
+                character.inventory.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'inventory-item-detailed';
+                    div.innerHTML = `
+                        <input type="text" class="item-name-detailed" value="${item.nome}" data-index="${index}" onchange="updateInventoryItem(this)">
+                        <input type="number" class="item-weight-detailed" value="${item.peso}" step="0.1" min="0" data-index="${index}" onchange="updateInventoryItem(this)">
+                        <div class="item-controls-detailed">
+                            <button onclick="removeItemDetailed(${index})">🗑️</button>
+                        </div>
+                    `;
+                    inventoryContainer.appendChild(div);
+                });
+            }
+            
+            // Anotações
+            document.getElementById('tab-notes').value = character.notes;
+        }
+
+        function updateAttribute(input) {
+            const attr = input.dataset.attribute;
+            const value = parseInt(input.value);
+            character.attributes[attr] = value;
+            
+            // Atualizar modificador
+            const mod = value - 5;
+            input.parentElement.querySelector('.attribute-mod-detailed').textContent = mod >= 0 ? '+' + mod : mod;
+            
+            updateCharacterData();
+        }
+
+        function updateInventoryItem(input) {
+            const index = parseInt(input.dataset.index);
+            if (input.classList.contains('item-name-detailed')) {
+                character.inventory[index].nome = input.value;
+            } else {
+                character.inventory[index].peso = parseFloat(input.value);
+            }
+            updateCharacterData();
+        }
+
+        function addItemDetailed() {
+            const name = document.getElementById('new-item-name').value.trim();
+            const weight = parseFloat(document.getElementById('new-item-weight').value);
+            
+            if (name && weight > 0) {
+                character.inventory.push({ nome: name, peso: weight });
+                document.getElementById('new-item-name').value = '';
+                document.getElementById('new-item-weight').value = '';
+                updateCharacterTab();
+                updateCharacterData();
+            } else {
+                alert('Por favor, preencha o nome e o peso do item corretamente!');
+            }
+        }
+
+        function removeItemDetailed(index) {
+            character.inventory.splice(index, 1);
+            updateCharacterTab();
+            updateCharacterData();
+        }
+
+        function updateCharacterData() {
+            // Atualizar dados do personagem com os valores dos campos
+            character.name = document.getElementById('tab-name').value;
+            character.level = parseInt(document.getElementById('tab-level').value);
+            character.xp = parseInt(document.getElementById('tab-xp').value);
+            character.pv = parseInt(document.getElementById('tab-pv').value);
+            character.ca = parseInt(document.getElementById('tab-ca').value);
+            character.pvMax = parseInt(document.getElementById('tab-pv-max').value);
+            character.iniciativa = parseInt(document.getElementById('tab-iniciativa').value);
+            character.notes = document.getElementById('tab-notes').value;
+            
+            // Salvar no localStorage
+            localStorage.setItem('dndCharacter', JSON.stringify(character));
+        }
+
+        function saveCharacterData() {
+            updateCharacterData();
+            alert('✅ Personagem salvo com sucesso!');
+        }
+
+        function loadCharacterData() {
+            const saved = localStorage.getItem('dndCharacter');
+            if (saved) {
+                const savedCharacter = JSON.parse(saved);
+                // Mesclar dados salvos com o personagem atual
+                character = { ...character, ...savedCharacter };
+            }
         }
     </script>
 </body>
