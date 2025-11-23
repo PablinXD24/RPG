@@ -908,37 +908,44 @@
                 { 
                     nome: "Humano", 
                     atributos_base: { FOR: 5, CON: 5, DES: 5, MENTE: 5, CAR: 5 },
-                    bonus_customizacao_jogador: "+1 em DUAS habilidades"
+                    bonus_customizacao_jogador: "+1 em DUAS habilidades",
+                    habilidades: "Versatilidade: Adaptável a qualquer situação"
                 },
                 { 
                     nome: "Elfo", 
                     atributos_base: { FOR: 4, CON: 5, DES: 6, MENTE: 7, CAR: 4 },
-                    bonus_customizacao_jogador: "+1 em MENTE ou DES"
+                    bonus_customizacao_jogador: "+1 em MENTE ou DES",
+                    habilidades: "Visão no Escuro, Ancestral Feérico"
                 },
                 { 
                     nome: "Anão", 
                     atributos_base: { FOR: 6, CON: 7, DES: 4, MENTE: 5, CAR: 4 },
-                    bonus_customizacao_jogador: "+1 em CON ou FOR"
+                    bonus_customizacao_jogador: "+1 em CON ou FOR",
+                    habilidades: "Visão no Escuro, Resistência a Veneno"
                 },
                 { 
                     nome: "Orc", 
                     atributos_base: { FOR: 8, CON: 6, DES: 3, MENTE: 3, CAR: 3 },
-                    bonus_customizacao_jogador: "+1 em FOR ou CON"
+                    bonus_customizacao_jogador: "+1 em FOR ou CON",
+                    habilidades: "Agressividade, Resistência Física"
                 },
                 { 
                     nome: "Halfling", 
                     atributos_base: { FOR: 4, CON: 4, DES: 7, MENTE: 6, CAR: 5 },
-                    bonus_customizacao_jogador: "+1 em DES ou CAR"
+                    bonus_customizacao_jogador: "+1 em DES ou CAR",
+                    habilidades: "Sortudo, Furtividade Natural"
                 },
                 { 
                     nome: "Demônio", 
                     atributos_base: { FOR: 5, CON: 5, DES: 4, MENTE: 7, CAR: 7 },
-                    bonus_customizacao_jogador: "+1 em CAR ou MENTE"
+                    bonus_customizacao_jogador: "+1 em CAR ou MENTE",
+                    habilidades: "Resistência ao Fogo, Persuasão Demoníaca"
                 },
                 { 
                     nome: "Furries", 
                     atributos_base: { FOR: 6, CON: 4, DES: 8, MENTE: 4, CAR: 6 },
-                    bonus_customizacao_jogador: "+1 em DES ou FOR"
+                    bonus_customizacao_jogador: "+1 em DES ou FOR",
+                    habilidades: "Agilidade Animal, Sentidos Aguçados"
                 }
             ],
             classes: [
@@ -1038,7 +1045,9 @@
                 card.innerHTML = `
                     <h4>${race.nome}</h4>
                     <p class="text-xsmall">FOR ${race.atributos_base.FOR} | CON ${race.atributos_base.CON} | DES ${race.atributos_base.DES}</p>
+                    <p class="text-xsmall">MENTE ${race.atributos_base.MENTE} | CAR ${race.atributos_base.CAR}</p>
                     <p class="text-xsmall" style="color: var(--accent-purple); margin-top: 4px;">${race.bonus_customizacao_jogador}</p>
+                    <p class="text-xsmall" style="color: var(--accent-burgundy); margin-top: 4px;"><strong>Habilidades:</strong> ${race.habilidades}</p>
                 `;
                 card.onclick = () => selectRace(race);
                 raceGrid.appendChild(card);
