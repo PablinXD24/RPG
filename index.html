@@ -95,7 +95,7 @@
             margin-bottom: 30px;
         }
 
-        .rules-section, .character-section {
+        .rules-section, .character-section, .weight-section {
             background: var(--card-bg);
             padding: 20px;
             border-radius: var(--border-radius);
@@ -105,7 +105,7 @@
             transition: var(--transition);
         }
 
-        .rules-section:hover, .character-section:hover {
+        .rules-section:hover, .character-section:hover, .weight-section:hover {
             transform: translateY(-3px);
             box-shadow: 0 12px 20px rgba(0,0,0,0.15);
         }
@@ -423,6 +423,109 @@
             font-weight: bold;
         }
 
+        /* Sistema de Peso */
+        .weight-info {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .weight-stat {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid var(--accent-gold);
+        }
+
+        .weight-bar-container {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 20px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .weight-bar {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .weight-bar.leve {
+            background: #48bb78;
+        }
+
+        .weight-bar.medio {
+            background: #ed8936;
+        }
+
+        .weight-bar.pesado {
+            background: #e53e3e;
+        }
+
+        .weight-bar.imovel {
+            background: #805ad5;
+        }
+
+        .weight-limits {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .weight-limit {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-purple);
+        }
+
+        .inventory-section {
+            margin-top: 20px;
+        }
+
+        .inventory-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .item-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .item-controls button {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        .add-item-form {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .add-item-form input {
+            padding: 10px;
+            border: 2px solid var(--primary-light);
+            border-radius: 6px;
+            font-family: 'Lato', sans-serif;
+        }
+
+        .add-item-form button {
+            margin: 0;
+        }
+
         /* Menu mobile */
         .mobile-menu {
             display: none;
@@ -469,8 +572,12 @@
                 margin-bottom: 40px;
             }
             
-            .rules-section, .character-section {
+            .rules-section, .character-section, .weight-section {
                 padding: 25px;
+            }
+            
+            .weight-section {
+                grid-column: 1 / -1;
             }
             
             h2 {
@@ -501,6 +608,14 @@
             .calculator-section {
                 grid-column: 1 / -1;
             }
+            
+            .weight-info {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .weight-limits {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         @media (min-width: 1024px) {
@@ -509,11 +624,16 @@
             }
             
             .content-area {
+                grid-template-columns: 1fr 1fr;
                 gap: 30px;
             }
             
-            .rules-section, .character-section {
+            .rules-section, .character-section, .weight-section {
                 padding: 30px;
+            }
+            
+            .weight-limits {
+                grid-template-columns: repeat(4, 1fr);
             }
         }
 
@@ -534,7 +654,8 @@
             .race-card:hover, .class-card:hover,
             .attribute-card:hover, .combat-stat:hover,
             .rule-card:hover, .rules-section:hover,
-            .character-section:hover, .calculator-section:hover {
+            .character-section:hover, .calculator-section:hover,
+            .weight-section:hover {
                 transform: none;
             }
             
@@ -557,12 +678,16 @@
                 font-size: 1.6rem;
             }
             
-            .rules-section, .character-section {
+            .rules-section, .character-section, .weight-section {
                 padding: 15px;
             }
             
             .rule-card, .character-sheet, .special-rule {
                 padding: 12px;
+            }
+            
+            .add-item-form {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -784,6 +909,79 @@
                 </div>
             </div>
 
+            <div class="weight-section">
+                <h2>⚖️ Sistema de Peso</h2>
+                
+                <div class="rule-card">
+                    <h3>📊 Cálculo de Carga</h3>
+                    <p><strong>Limite Máximo de Carga (LMC):</strong> FORÇA × 7.5 kg</p>
+                    <p><strong>Peso Total:</strong> Soma de todos os itens no inventário (kg)</p>
+                </div>
+
+                <div class="weight-info">
+                    <div class="weight-stat">
+                        <div class="stat-label">FORÇA ATUAL</div>
+                        <div class="stat-value" id="weight-str">---</div>
+                    </div>
+                    <div class="weight-stat">
+                        <div class="stat-label">LMC TOTAL</div>
+                        <div class="stat-value" id="weight-lmc">--- kg</div>
+                    </div>
+                    <div class="weight-stat">
+                        <div class="stat-label">PESO ATUAL</div>
+                        <div class="stat-value" id="weight-current">--- kg</div>
+                    </div>
+                </div>
+
+                <div class="weight-stat">
+                    <div class="stat-label">STATUS DE CARGA</div>
+                    <div class="stat-value" id="weight-status">---</div>
+                    <div class="weight-bar-container">
+                        <div class="weight-bar" id="weight-bar"></div>
+                    </div>
+                    <div id="weight-penalty" style="font-size: 0.9rem; margin-top: 8px;"></div>
+                </div>
+
+                <div class="weight-limits">
+                    <div class="weight-limit">
+                        <h4>🏃 Peso Leve</h4>
+                        <p><strong>Limite:</strong> LMC ÷ 3</p>
+                        <p><strong>Exemplo:</strong> <span id="weight-light-example">---</span> kg</p>
+                        <p><strong>Penalidade:</strong> Nenhuma</p>
+                    </div>
+                    <div class="weight-limit">
+                        <h4>🚶 Peso Médio</h4>
+                        <p><strong>Limite:</strong> LMC × 2/3</p>
+                        <p><strong>Exemplo:</strong> <span id="weight-medium-example">---</span> kg</p>
+                        <p><strong>Penalidade:</strong> Leve (Perde 3m de movimento, -2 em testes de Destreza)</p>
+                    </div>
+                    <div class="weight-limit">
+                        <h4>🐢 Peso Pesado</h4>
+                        <p><strong>Limite:</strong> LMC</p>
+                        <p><strong>Exemplo:</strong> <span id="weight-heavy-example">---</span> kg</p>
+                        <p><strong>Penalidade:</strong> Severa (Move-se 1.5m, Desvantagem em ataques/Agilidade)</p>
+                    </div>
+                    <div class="weight-limit">
+                        <h4>🚫 Imóvel</h4>
+                        <p><strong>Condição:</strong> > LMC</p>
+                        <p><strong>Penalidade:</strong> O personagem não pode se mover</p>
+                    </div>
+                </div>
+
+                <div class="inventory-section">
+                    <h3>🎒 Inventário</h3>
+                    <div id="inventory-items">
+                        <!-- Itens serão preenchidos por JavaScript -->
+                    </div>
+                    
+                    <div class="add-item-form">
+                        <input type="text" id="item-name" placeholder="Nome do item">
+                        <input type="number" id="item-weight" placeholder="Peso (kg)" step="0.1" min="0">
+                        <button onclick="addItem()">Adicionar Item</button>
+                    </div>
+                </div>
+            </div>
+
             <div class="calculator-section">
                 <h2>🧮 Calculadora Rápida</h2>
                 <p>Use esta calculadora para testar rapidamente diferentes combinações de raça, classe e armadura:</p>
@@ -834,6 +1032,7 @@
     <div class="mobile-menu" id="mobile-menu">
         <button onclick="scrollToSection('rules')">📖 Regras</button>
         <button onclick="scrollToSection('character')">👤 Personagem</button>
+        <button onclick="scrollToSection('weight')">⚖️ Peso</button>
         <button onclick="scrollToSection('calculator')">🧮 Calculadora</button>
     </div>
 
@@ -1032,6 +1231,16 @@
                 "Leve": { "bonus_ca": 2, "des_limite": 99, "display": "Leve (Couro)" },
                 "Media": { "bonus_ca": 4, "des_limite": 1, "display": "Média (Cota de Malha)" },
                 "Pesada": { "bonus_ca": 6, "des_limite": 0, "display": "Pesada (Placas)" }
+            },
+            // Sistema de Peso
+            peso_sistema: {
+                lmc_calculo: "FOR * 7.5",
+                limites_carga: {
+                    leve: { limite: "LMC / 3", penalidade: "Nenhuma" },
+                    medio: { limite: "LMC * 2 / 3", penalidade: "Leve (Perde 3m de movimento, -2 em testes de Destreza)" },
+                    pesado: { limite: "LMC", penalidade: "Severa (Move-se 1.5m, Desvantagem em ataques/Agilidade)" },
+                    imovel: { condicao: "> LMC", penalidade: "O personagem não pode se mover" }
+                }
             }
         };
 
@@ -1048,7 +1257,13 @@
                 CAR: 5
             },
             name: "Aventureiro",
-            raceCustomization: []
+            raceCustomization: [],
+            inventory: [
+                { nome: "Escudo Leve", peso: 2.0 },
+                { nome: "Espada Grande", peso: 2.0 },
+                { nome: "Rações (7 dias)", peso: 3.5 },
+                { nome: "Tocha", peso: 0.5 }
+            ]
         };
 
         // Inicialização
@@ -1059,6 +1274,7 @@
             populateCalculatorSelectors();
             updateCharacterSheet();
             updateCalculator();
+            updateWeightSystem();
             
             // Mostrar menu mobile apenas em telas pequenas
             if (window.innerWidth < 768) {
@@ -1084,6 +1300,9 @@
                     break;
                 case 'character':
                     element = document.querySelector('.character-section');
+                    break;
+                case 'weight':
+                    element = document.querySelector('.weight-section');
                     break;
                 case 'calculator':
                     element = document.querySelector('.calculator-section');
@@ -1213,6 +1432,7 @@
             populateAttributes();
             updateCharacterSheet();
             updateCalculator();
+            updateWeightSystem();
         }
 
         function showRaceCustomization(race) {
@@ -1297,6 +1517,7 @@
             applyRaceCustomization();
             populateAttributes();
             updateCharacterSheet();
+            updateWeightSystem();
         }
 
         function applyRaceCustomization() {
@@ -1335,6 +1556,7 @@
             populateAttributes();
             updateCharacterSheet();
             updateCalculator();
+            updateWeightSystem();
         }
 
         function updateCharacter() {
@@ -1414,6 +1636,122 @@
             } else {
                 specialRuleContainer.innerHTML = '';
             }
+        }
+
+        // Funções para o Sistema de Peso
+        function calculateLMC() {
+            return character.attributes.FOR * 7.5;
+        }
+
+        function calculateTotalWeight() {
+            return character.inventory.reduce((total, item) => total + item.peso, 0);
+        }
+
+        function getWeightStatus() {
+            const lmc = calculateLMC();
+            const totalWeight = calculateTotalWeight();
+            
+            if (totalWeight > lmc) {
+                return { status: "Imóvel", level: "imovel", percentage: 100 };
+            } else if (totalWeight > lmc * 2/3) {
+                return { status: "Peso Pesado", level: "pesado", percentage: (totalWeight / lmc) * 100 };
+            } else if (totalWeight > lmc / 3) {
+                return { status: "Peso Médio", level: "medio", percentage: (totalWeight / lmc) * 100 };
+            } else {
+                return { status: "Peso Leve", level: "leve", percentage: (totalWeight / lmc) * 100 };
+            }
+        }
+
+        function updateWeightSystem() {
+            const lmc = calculateLMC();
+            const totalWeight = calculateTotalWeight();
+            const weightStatus = getWeightStatus();
+            
+            // Atualizar informações básicas
+            document.getElementById('weight-str').textContent = character.attributes.FOR;
+            document.getElementById('weight-lmc').textContent = lmc.toFixed(1);
+            document.getElementById('weight-current').textContent = totalWeight.toFixed(1);
+            
+            // Atualizar status
+            document.getElementById('weight-status').textContent = weightStatus.status;
+            
+            // Atualizar barra de progresso
+            const weightBar = document.getElementById('weight-bar');
+            weightBar.className = 'weight-bar ' + weightStatus.level;
+            weightBar.style.width = Math.min(weightStatus.percentage, 100) + '%';
+            
+            // Atualizar penalidade
+            const penaltyElement = document.getElementById('weight-penalty');
+            switch(weightStatus.level) {
+                case 'leve':
+                    penaltyElement.textContent = systemData.peso_sistema.limites_carga.leve.penalidade;
+                    break;
+                case 'medio':
+                    penaltyElement.textContent = systemData.peso_sistema.limites_carga.medio.penalidade;
+                    break;
+                case 'pesado':
+                    penaltyElement.textContent = systemData.peso_sistema.limites_carga.pesado.penalidade;
+                    break;
+                case 'imovel':
+                    penaltyElement.textContent = systemData.peso_sistema.limites_carga.imovel.penalidade;
+                    break;
+            }
+            
+            // Atualizar exemplos de limites
+            document.getElementById('weight-light-example').textContent = (lmc / 3).toFixed(1);
+            document.getElementById('weight-medium-example').textContent = (lmc * 2 / 3).toFixed(1);
+            document.getElementById('weight-heavy-example').textContent = lmc.toFixed(1);
+            
+            // Atualizar inventário
+            updateInventoryDisplay();
+        }
+
+        function updateInventoryDisplay() {
+            const inventoryContainer = document.getElementById('inventory-items');
+            inventoryContainer.innerHTML = '';
+            
+            character.inventory.forEach((item, index) => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'inventory-item';
+                itemElement.innerHTML = `
+                    <div>
+                        <strong>${item.nome}</strong>
+                        <div style="font-size: 0.8rem; color: var(--primary-light);">${item.peso} kg</div>
+                    </div>
+                    <div class="item-controls">
+                        <button onclick="removeItem(${index})">Remover</button>
+                    </div>
+                `;
+                inventoryContainer.appendChild(itemElement);
+            });
+        }
+
+        function addItem() {
+            const nameInput = document.getElementById('item-name');
+            const weightInput = document.getElementById('item-weight');
+            
+            const name = nameInput.value.trim();
+            const weight = parseFloat(weightInput.value);
+            
+            if (!name || isNaN(weight) || weight <= 0) {
+                alert('Por favor, preencha o nome e o peso do item corretamente.');
+                return;
+            }
+            
+            character.inventory.push({
+                nome: name,
+                peso: weight
+            });
+            
+            nameInput.value = '';
+            weightInput.value = '';
+            
+            updateWeightSystem();
+        }
+
+        function removeItem(index) {
+            character.inventory.splice(index, 1);
+            updateWeightSystem();
         }
 
         // Funções para a calculadora rápida
