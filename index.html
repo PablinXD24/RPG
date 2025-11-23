@@ -902,7 +902,7 @@
     <div id="pdf-sheet" style="display:none;"></div>
 
     <script>
-        // Dados do sistema (versão compacta para mobile)
+        // Dados do sistema COMPLETO com todas as classes
         const systemData = {
             racas: [
                 { 
@@ -929,38 +929,66 @@
                     nome: "Halfling", 
                     atributos_base: { FOR: 4, CON: 4, DES: 7, MENTE: 6, CAR: 5 },
                     bonus_customizacao_jogador: "+1 em DES ou CAR"
+                },
+                { 
+                    nome: "Demônio", 
+                    atributos_base: { FOR: 5, CON: 5, DES: 4, MENTE: 7, CAR: 7 },
+                    bonus_customizacao_jogador: "+1 em CAR ou MENTE"
+                },
+                { 
+                    nome: "Furries", 
+                    atributos_base: { FOR: 6, CON: 4, DES: 8, MENTE: 4, CAR: 6 },
+                    bonus_customizacao_jogador: "+1 em DES ou FOR"
                 }
             ],
             classes: [
                 { 
+                    nome: "Bárbaro", 
+                    bonus_atributos: { CON: 2, FOR: 1 }, 
+                    bonus_pv: 8, 
+                    regra_unica: "Fúria: +3 Dano, Dano reduzido pela metade (1 uso/descanso)" 
+                },
+                { 
                     nome: "Guerreiro", 
                     bonus_atributos: { FOR: 2, DES: 1 }, 
                     bonus_pv: 6, 
-                    regra_unica: "Ataque Extra (1 uso/descanso)" 
+                    regra_unica: "Ataque Extra: Duas vezes na mesma rodada (1 uso/descanso)" 
                 },
                 { 
                     nome: "Ladino", 
                     bonus_atributos: { DES: 2, MENTE: 1 }, 
                     bonus_pv: 4, 
-                    regra_unica: "Ataque Furtivo (dano dobrado)" 
-                },
-                { 
-                    nome: "Mago", 
-                    bonus_atributos: { MENTE: 3 }, 
-                    bonus_pv: 2, 
-                    regra_unica: "Magia Extra (1 uso/descanso)" 
+                    regra_unica: "Ataque Furtivo: Dobro de dano se o inimigo estiver distraído" 
                 },
                 { 
                     nome: "Clérigo", 
                     bonus_atributos: { MENTE: 2, CON: 1 }, 
                     bonus_pv: 4, 
-                    regra_unica: "Curar Feridas (3 usos)" 
+                    regra_unica: "Curar Feridas: Restaura 1d8 + Mod. MENTE PV (3 usos/descanso)" 
                 },
                 { 
-                    nome: "Bárbaro", 
-                    bonus_atributos: { CON: 2, FOR: 1 }, 
-                    bonus_pv: 8, 
-                    regra_unica: "Fúria (+3 dano, redução)" 
+                    nome: "Druida", 
+                    bonus_atributos: { MENTE: 2, CON: 1 }, 
+                    bonus_pv: 4, 
+                    regra_unica: "Forma Animal: Transforma-se por 3 rodadas. Ganha +2 CON (1 uso/descanso)" 
+                },
+                { 
+                    nome: "Feiticeiro", 
+                    bonus_atributos: { CAR: 3 }, 
+                    bonus_pv: 2, 
+                    regra_unica: "Magia Pura: Pode relançar um teste de Magia falho (1 uso/descanso)" 
+                },
+                { 
+                    nome: "Mago", 
+                    bonus_atributos: { MENTE: 3 }, 
+                    bonus_pv: 2, 
+                    regra_unica: "Magia Inteligente: Lança uma magia extra (Ataque/Defesa) (1 uso/descanso)" 
+                },
+                { 
+                    nome: "Artífice", 
+                    bonus_atributos: { MENTE: 2, DES: 1 }, 
+                    bonus_pv: 4, 
+                    regra_unica: "Infusão: Encanta arma/armadura para +1 no ataque/CA (1 uso/descanso)" 
                 }
             ],
             armaduras: {
