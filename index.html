@@ -3,45 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D&D Simplificado - RPG Grupo</title>
+    <title>D&D Simplificado (Média 5)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Tela de Login -->
-    <div class="login-screen" id="login-screen">
-        <div class="login-card">
-            <h1 class="login-title">🎲 D&D Simplificado</h1>
-            <p class="login-subtitle">Sistema Média 5 - Grupo RPG</p>
+    <div id="login-screen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>🎲 D&D Simplificado</h1>
+                <p class="subtitle">Sistema Média 5</p>
+            </div>
             
-            <div id="login-error" class="error-message" style="display: none;"></div>
-            
-            <input type="text" id="login-username" class="login-input" placeholder="Usuário (ex: PabloRPG)" autocomplete="username">
-            <input type="password" id="login-password" class="login-input" placeholder="Senha" autocomplete="current-password">
-            <button class="login-button" onclick="login()">Entrar no RPG</button>
+            <div class="login-form">
+                <h2>Entrar</h2>
+                <div class="form-group">
+                    <label for="username">Usuário</label>
+                    <input type="text" id="username" placeholder="Ex: PabloRPG">
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" placeholder="Senha">
+                </div>
+                <button id="login-btn" class="login-btn">Entrar</button>
+                <div id="login-message" class="login-message"></div>
+            </div>
             
             <div class="login-info">
-                <h4>👥 Jogadores do Grupo:</h4>
-                <p>
-                    <strong>Usuários:</strong> PabloRPG, PamelaRPG, JoaoRPG, JaquelineRPG, DudaRPG, DanteRPG<br>
-                    <strong>Senha:</strong> RPG25
-                </p>
+                <p>Usuários: PabloRPG, PamelaRPG, JoaoRPG, JaquelineRPG, DudaRPG, DanteRPG</p>
+                <p>Senha: RPG25</p>
             </div>
         </div>
     </div>
 
-    <!-- Conteúdo Principal (aparece após login) -->
-    <div class="main-content" id="main-content">
+    <!-- Aplicação Principal (inicialmente oculta) -->
+    <div id="main-app" class="main-app" style="display: none;">
         <div class="container">
-            <div class="user-info">
-                <span>👋 Olá, <strong id="user-display-name">Jogador</strong></span>
-                <button class="logout-button" onclick="logout()">Sair</button>
-            </div>
-
             <header>
                 <h1>🎲 D&D Simplificado</h1>
                 <div class="subtitle">Sistema Média 5 - Mobile</div>
+                <div class="user-info">
+                    <span id="user-display">Usuário</span>
+                    <button id="logout-btn" class="logout-btn">Sair</button>
+                </div>
             </header>
+            
+            <!-- Painel de Administração (apenas para PabloRPG) -->
+            <div id="admin-panel" class="admin-panel" style="display: none;">
+                <div class="section-card">
+                    <h2>👑 Painel de Administração</h2>
+                    <div class="admin-form">
+                        <h3>Adicionar Novo Usuário</h3>
+                        <div class="form-group">
+                            <label for="new-username">Nome de Usuário</label>
+                            <input type="text" id="new-username" placeholder="Ex: NovoUsuarioRPG">
+                        </div>
+                        <div class="form-group">
+                            <label for="new-password">Senha</label>
+                            <input type="password" id="new-password" placeholder="Senha">
+                        </div>
+                        <button id="add-user-btn" class="btn-primary">Adicionar Usuário</button>
+                        <div id="admin-message" class="admin-message"></div>
+                    </div>
+                </div>
+            </div>
             
             <div class="content-area">
                 <!-- Regras -->
@@ -372,7 +402,7 @@
                     </div>
 
                     <button class="save-button" onclick="saveCharacterData()">
-                        💾 Salvar no Firebase
+                        💾 Salvar Alterações
                     </button>
                 </div>
             </div>
@@ -396,17 +426,11 @@
                 📜 <span>Ficha</span>
             </button>
         </div>
+
+        <!-- Template PDF (oculto) -->
+        <div id="pdf-sheet" style="display:none;"></div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-    
-    <!-- Configuração do Firebase -->
-    <script src="firebase-config.js"></script>
-    
-    <!-- Script principal -->
     <script src="script.js"></script>
 </body>
 </html>
