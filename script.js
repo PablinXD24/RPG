@@ -8,9 +8,11 @@ const firebaseConfig = {
   appId: "1:1083914328300:web:d6532d2dd37615a893edc9"
 };
 
+
 // Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+const db = firebase.firestore();
 
 // Dados do sistema COMPLETO com todas as classes
 const systemData = {
@@ -161,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentUser = user;
             isAdmin = user.email === 'pablorpg@rpg.com';
             showMainApp();
+            loadUserCharacter(); // Carregar dados específicos do usuário
         } else {
             // Usuário não está logado
             showLoginScreen();
@@ -175,7 +178,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCharacterSheet();
     updateCalculator();
     updateWeightSystem();
-    loadCharacterData();
 });
 
 // Funções de autenticação
@@ -302,6 +304,76 @@ function showMainApp() {
     }
 }
 
+// Funções de salvamento individuais por usuário
+async function loadUserCharacter() {
+    if (!currentUser) return;
+    
+    try {
+        const docRef = db.collection('characters').doc(currentUser.uid);
+        const doc = await docRef.get();
+        
+        if (doc.exists) {
+            const savedCharacter = doc.data();
+            // Mesclar dados salvos com o personagem atual
+            character = { ...character, ...savedCharacter };
+            
+            // Atualizar a interface com os dados carregados
+            updateInterfaceAfterLoad();
+        } else {
+            // Primeiro login - usar dados padrão
+            console.log('Primeiro login - usando dados padrão');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar personagem:', error);
+    }
+}
+
+async function saveUserCharacter() {
+    if (!currentUser) return;
+    
+    try {
+        await db.collection('characters').doc(currentUser.uid).set(character);
+        console.log('Personagem salvo com sucesso!');
+        return true;
+    } catch (error) {
+        console.error('Erro ao salvar personagem:', error);
+        return false;
+    }
+}
+
+function updateInterfaceAfterLoad() {
+    // Atualizar seleções de raça
+    if (character.race) {
+        document.querySelectorAll('.race-card').forEach(card => {
+            if (card.querySelector('h4').textContent === character.race.nome) {
+                card.classList.add('selected');
+            }
+        });
+        document.getElementById('selected-race').textContent = character.race.nome;
+    }
+    
+    // Atualizar seleções de classe
+    if (character.class) {
+        document.querySelectorAll('.class-card').forEach(card => {
+            if (card.querySelector('h4').textContent === character.class.nome) {
+                card.classList.add('selected');
+            }
+        });
+        document.getElementById('selected-class').textContent = character.class.nome;
+    }
+    
+    // Atualizar armadura
+    document.getElementById('armor-select').value = character.armor;
+    
+    // Atualizar atributos
+    populateAttributes();
+    
+    // Atualizar toda a interface
+    updateCharacterSheet();
+    updateCalculator();
+    updateWeightSystem();
+}
+
 // Funções de navegação mobile
 function scrollToSection(section) {
     const element = document.querySelector(`.${section}-section`);
@@ -398,6 +470,7 @@ function selectRace(race) {
     updateCharacterSheet();
     updateCalculator();
     updateWeightSystem();
+    saveUserCharacter(); // Salvar automaticamente
 }
 
 function showRaceCustomization(race) {
@@ -467,6 +540,7 @@ function handleCustomizationSelection(race, selectedAttr) {
     updateCharacterSheet();
     updateCalculator();
     updateWeightSystem();
+    saveUserCharacter(); // Salvar automaticamente
 }
 
 function applyRaceCustomization() {
@@ -497,11 +571,13 @@ function selectClass(cls) {
     updateCharacterSheet();
     updateCalculator();
     updateWeightSystem();
+    saveUserCharacter(); // Salvar automaticamente
 }
 
 function updateCharacter() {
     character.armor = document.getElementById('armor-select').value;
     updateCharacterSheet();
+    saveUserCharacter(); // Salvar automaticamente
 }
 
 function updateCharacterSheet() {
@@ -636,6 +712,7 @@ function addItem() {
         document.getElementById('item-name').value = '';
         document.getElementById('item-weight').value = '';
         updateWeightSystem();
+        saveUserCharacter(); // Salvar automaticamente
     } else {
         alert('Por favor, preencha o nome e o peso do item corretamente!');
     }
@@ -644,6 +721,7 @@ function addItem() {
 function removeItem(index) {
     character.inventory.splice(index, 1);
     updateWeightSystem();
+    saveUserCharacter(); // Salvar automaticamente
 }
 
 // Nova Aba - Ficha de Personagem Editável
@@ -810,26 +888,14 @@ function updateCharacterData() {
     character.iniciativa = parseInt(document.getElementById('tab-iniciativa').value);
     character.notes = document.getElementById('tab-notes').value;
     
-    // Salvar no localStorage (por usuário)
-    if (currentUser) {
-        const userKey = `dndCharacter_${currentUser.uid}`;
-        localStorage.setItem(userKey, JSON.stringify(character));
-    }
+    saveUserCharacter(); // Salvar automaticamente no Firestore
 }
 
-function saveCharacterData() {
-    updateCharacterData();
-    alert('✅ Personagem salvo com sucesso!');
-}
-
-function loadCharacterData() {
-    if (currentUser) {
-        const userKey = `dndCharacter_${currentUser.uid}`;
-        const saved = localStorage.getItem(userKey);
-        if (saved) {
-            const savedCharacter = JSON.parse(saved);
-            // Mesclar dados salvos com o personagem atual
-            character = { ...character, ...savedCharacter };
-        }
+async function saveCharacterData() {
+    const success = await saveUserCharacter();
+    if (success) {
+        alert('✅ Personagem salvo com sucesso!');
+    } else {
+        alert('❌ Erro ao salvar personagem. Tente novamente.');
     }
 }
