@@ -69,6 +69,16 @@ body {
     font-size: 0.9rem;
 }
 
+.error-message {
+    background: rgba(239, 68, 68, 0.1);
+    color: #e53e3e;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border-left: 4px solid #e53e3e;
+    font-size: 0.9rem;
+}
+
 .login-input {
     width: 100%;
     padding: 12px;
