@@ -1,12 +1,12 @@
 // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyABnnz6XLEPdr8BqEOAdkNRrVVoGdVEzwA",
-    authDomain: "rpg25-efb93.firebaseapp.com",
-    projectId: "rpg25-efb93",
-    storageBucket: "rpg25-efb93.firebasestorage.app",
-    messagingSenderId: "1083914328300",
-    appId: "1:1083914328300:web:d6532d2dd37615a893edc9"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyABnnz6XLEPdr8BqEOAdkNRrVVoGdVEzwA",
+  authDomain: "rpg25-efb93.firebaseapp.com",
+  projectId: "rpg25-efb93",
+  storageBucket: "rpg25-efb93.firebasestorage.app",
+  messagingSenderId: "1083914328300",
+  appId: "1:1083914328300:web:d6532d2dd37615a893edc9"
+};
 
 // Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (user) {
             // Usuário está logado
             currentUser = user;
-            isAdmin = user.email === 'PabloRPG@rpg.com';
+            isAdmin = user.email === 'pablorpg@rpg.com';
             showMainApp();
         } else {
             // Usuário não está logado
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Funções de autenticação
 function login() {
-    const username = document.getElementById('username').value.trim();
+    const username = document.getElementById('username').value.trim().toLowerCase();
     const password = document.getElementById('password').value;
     const messageElement = document.getElementById('login-message');
     
@@ -232,7 +232,7 @@ function logout() {
 }
 
 function addNewUser() {
-    const username = document.getElementById('new-username').value.trim();
+    const username = document.getElementById('new-username').value.trim().toLowerCase();
     const password = document.getElementById('new-password').value;
     const messageElement = document.getElementById('admin-message');
     
