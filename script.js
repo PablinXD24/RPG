@@ -1,3 +1,17 @@
+// Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyABnnz6XLEPdr8BqEOAdkNRrVVoGdVEzwA",
+    authDomain: "rpg25-efb93.firebaseapp.com",
+    projectId: "rpg25-efb93",
+    storageBucket: "rpg25-efb93.firebasestorage.app",
+    messagingSenderId: "1083914328300",
+    appId: "1:1083914328300:web:d6532d2dd37615a893edc9"
+  };
+
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
 // Dados do sistema COMPLETO com todas as classes
 const systemData = {
     racas: [
@@ -102,7 +116,7 @@ const systemData = {
     }
 };
 
-// Estado do personagem
+// Estado do personagem - INVENTÁRIO VAZIO
 let character = {
     race: null,
     class: null,
@@ -110,7 +124,8 @@ let character = {
     attributes: { FOR: 5, CON: 5, DES: 5, MENTE: 5, CAR: 5 },
     name: "Aventureiro",
     raceCustomization: [],
-    inventory: [],
+    inventory: [], // Inventário começa vazio
+    // Novos campos para a ficha editável
     level: 1,
     xp: 0,
     pv: 10,
@@ -121,115 +136,183 @@ let character = {
     customAbilities: []
 };
 
+// Estado do usuário
+let currentUser = null;
+let isAdmin = false;
+
 // Inicialização
 document.addEventListener('DOMContentLoaded', function() {
-    // Verificar se usuário já está logado
-    auth.onAuthStateChanged((user) => {
+    // Configurar listeners de login
+    document.getElementById('login-btn').addEventListener('click', login);
+    document.getElementById('logout-btn').addEventListener('click', logout);
+    document.getElementById('add-user-btn').addEventListener('click', addNewUser);
+    
+    // Permitir login com Enter
+    document.getElementById('password').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            login();
+        }
+    });
+    
+    // Verificar se o usuário já está logado
+    auth.onAuthStateChanged(user => {
         if (user) {
-            showMainContent(user);
-            loadUserCharacter(user.uid);
+            // Usuário está logado
+            currentUser = user;
+            isAdmin = user.email === 'PabloRPG@rpg.com';
+            showMainApp();
         } else {
+            // Usuário não está logado
             showLoginScreen();
         }
     });
-
+    
+    // Inicializar dados do sistema
     populateRaces();
     populateClasses();
+    populateAttributes();
     populateCalculatorSelectors();
+    updateCharacterSheet();
+    updateCalculator();
+    updateWeightSystem();
+    loadCharacterData();
 });
 
-// Funções de Autenticação
-async function login() {
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
-
+// Funções de autenticação
+function login() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const messageElement = document.getElementById('login-message');
+    
     if (!username || !password) {
-        alert('Por favor, preencha usuário e senha');
+        showMessage(messageElement, 'Por favor, preencha todos os campos', 'error');
         return;
     }
-
-    try {
-        // Firebase Authentication com email/password
-        const userCredential = await auth.signInWithEmailAndPassword(`${username}@rpg.com`, password);
-        const user = userCredential.user;
-        showMainContent(user);
-        loadUserCharacter(user.uid);
-    } catch (error) {
-        console.error('Erro no login:', error);
-        alert('Usuário ou senha incorretos. Use: PabloRPG, PamelaRPG, JoaoRPG, JaquelineRPG, DudaRPG, DanteRPG e senha RPG25');
-    }
+    
+    // Adicionar domínio padrão para login com email
+    const email = `${username}@rpg.com`;
+    
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Login bem-sucedido
+            showMessage(messageElement, 'Login realizado com sucesso!', 'success');
+        })
+        .catch((error) => {
+            // Tratar erros de login
+            let errorMessage = 'Erro ao fazer login';
+            
+            switch (error.code) {
+                case 'auth/user-not-found':
+                    errorMessage = 'Usuário não encontrado';
+                    break;
+                case 'auth/wrong-password':
+                    errorMessage = 'Senha incorreta';
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage = 'Email inválido';
+                    break;
+                default:
+                    errorMessage = error.message;
+            }
+            
+            showMessage(messageElement, errorMessage, 'error');
+        });
 }
 
-async function logout() {
-    try {
-        await auth.signOut();
-        showLoginScreen();
-    } catch (error) {
-        console.error('Erro no logout:', error);
+function logout() {
+    auth.signOut()
+        .then(() => {
+            currentUser = null;
+            isAdmin = false;
+            showLoginScreen();
+        })
+        .catch((error) => {
+            console.error('Erro ao fazer logout:', error);
+        });
+}
+
+function addNewUser() {
+    const username = document.getElementById('new-username').value.trim();
+    const password = document.getElementById('new-password').value;
+    const messageElement = document.getElementById('admin-message');
+    
+    if (!username || !password) {
+        showMessage(messageElement, 'Por favor, preencha todos os campos', 'error');
+        return;
     }
+    
+    // Adicionar domínio padrão para criação de usuário
+    const email = `${username}@rpg.com`;
+    
+    auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            showMessage(messageElement, `Usuário ${username} criado com sucesso!`, 'success');
+            document.getElementById('new-username').value = '';
+            document.getElementById('new-password').value = '';
+        })
+        .catch((error) => {
+            let errorMessage = 'Erro ao criar usuário';
+            
+            switch (error.code) {
+                case 'auth/email-already-in-use':
+                    errorMessage = 'Este usuário já existe';
+                    break;
+                case 'auth/weak-password':
+                    errorMessage = 'A senha é muito fraca';
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage = 'Nome de usuário inválido';
+                    break;
+                default:
+                    errorMessage = error.message;
+            }
+            
+            showMessage(messageElement, errorMessage, 'error');
+        });
+}
+
+function showMessage(element, message, type) {
+    element.textContent = message;
+    element.className = `${element.className.split(' ')[0]} ${type}`;
+    element.style.display = 'block';
+    
+    // Limpar mensagem após alguns segundos
+    setTimeout(() => {
+        element.style.display = 'none';
+    }, 5000);
 }
 
 function showLoginScreen() {
     document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('main-content').style.display = 'none';
+    document.getElementById('main-app').style.display = 'none';
 }
 
-function showMainContent(user) {
+function showMainApp() {
     document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('main-content').style.display = 'block';
+    document.getElementById('main-app').style.display = 'block';
     
-    const displayName = user.email.split('@')[0].replace('RPG', '');
-    document.getElementById('user-display-name').textContent = displayName;
+    // Atualizar informações do usuário
+    document.getElementById('user-display').textContent = currentUser.email.split('@')[0];
     
-    updateCharacterSheet();
-    updateCalculator();
-    updateWeightSystem();
-}
-
-// Firebase Firestore - Salvar/Carregar Personagem
-async function saveCharacterData() {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    updateCharacterData(); // Atualiza o objeto character
-
-    try {
-        await db.collection('characters').doc(user.uid).set({
-            ...character,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-            userName: user.email.split('@')[0]
-        });
-        alert('✅ Personagem salvo com sucesso no Firebase!');
-    } catch (error) {
-        console.error('Erro ao salvar personagem:', error);
-        alert('❌ Erro ao salvar personagem');
+    // Mostrar/ocultar painel de administração
+    if (isAdmin) {
+        document.getElementById('admin-panel').style.display = 'block';
+    } else {
+        document.getElementById('admin-panel').style.display = 'none';
     }
 }
 
-async function loadUserCharacter(userId) {
-    try {
-        const doc = await db.collection('characters').doc(userId).get();
-        if (doc.exists) {
-            const savedCharacter = doc.data();
-            // Mesclar dados salvos com o personagem atual
-            character = { ...character, ...savedCharacter };
-            
-            // Atualizar a interface
-            updateCharacterSheet();
-            if (document.getElementById('character-tab').classList.contains('active')) {
-                updateCharacterTab();
-            }
-            updateWeightSystem();
-        }
-    } catch (error) {
-        console.error('Erro ao carregar personagem:', error);
+// Funções de navegação mobile
+function scrollToSection(section) {
+    const element = document.querySelector(`.${section}-section`);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
     }
 }
 
-// Funções do Sistema
+// Funções do sistema
 function populateRaces() {
     const raceGrid = document.getElementById('race-grid');
-    raceGrid.innerHTML = '';
     systemData.racas.forEach(race => {
         const card = document.createElement('div');
         card.className = 'race-card';
@@ -247,7 +330,6 @@ function populateRaces() {
 
 function populateClasses() {
     const classGrid = document.getElementById('class-grid');
-    classGrid.innerHTML = '';
     systemData.classes.forEach(cls => {
         const card = document.createElement('div');
         card.className = 'class-card';
@@ -640,7 +722,7 @@ function updateCharacterTab() {
     customAbility.className = 'ability-item';
     customAbility.innerHTML = `
         <div class="ability-name">✨ Habilidades Customizadas</div>
-        <div class="ability-description" contenteditable="true" placeholder="Adicione outras habilidades, talentos, magias..." onblur="updateCharacterData()">${character.customAbilities.join('\n') || ''}</div>
+        <div class="ability-description" contenteditable="true" placeholder="Adicione outras habilidades, talentos, magias..." onblur="updateCharacterData()">${character.customAbilities.join('\n')}</div>
     `;
     abilitiesContainer.appendChild(customAbility);
     
@@ -728,46 +810,26 @@ function updateCharacterData() {
     character.iniciativa = parseInt(document.getElementById('tab-iniciativa').value);
     character.notes = document.getElementById('tab-notes').value;
     
-    // Salvar automaticamente no Firebase
-    const user = auth.currentUser;
-    if (user) {
-        db.collection('characters').doc(user.uid).set({
-            ...character,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-            userName: user.email.split('@')[0]
-        }).catch(error => {
-            console.error('Erro ao salvar automaticamente:', error);
-        });
+    // Salvar no localStorage (por usuário)
+    if (currentUser) {
+        const userKey = `dndCharacter_${currentUser.uid}`;
+        localStorage.setItem(userKey, JSON.stringify(character));
     }
 }
 
-// Funções de Navegação
-function scrollToSection(section) {
-    const element = document.querySelector(`.${section}-section`);
-    if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-    }
+function saveCharacterData() {
+    updateCharacterData();
+    alert('✅ Personagem salvo com sucesso!');
 }
 
-// Função para criar usuários (apenas para administração)
-async function createUsers() {
-    // Esta função é apenas para criar os usuários inicialmente
-    // Execute no console do navegador quando necessário
-    const users = [
-        { email: 'PabloRPG@rpg.com', password: 'RPG25', displayName: 'Pablo' },
-        { email: 'PamelaRPG@rpg.com', password: 'RPG25', displayName: 'Pamela' },
-        { email: 'JoaoRPG@rpg.com', password: 'RPG25', displayName: 'João' },
-        { email: 'JaquelineRPG@rpg.com', password: 'RPG25', displayName: 'Jaqueline' },
-        { email: 'DudaRPG@rpg.com', password: 'RPG25', displayName: 'Duda' },
-        { email: 'DanteRPG@rpg.com', password: 'RPG25', displayName: 'Dante' }
-    ];
-
-    for (const user of users) {
-        try {
-            await auth.createUserWithEmailAndPassword(user.email, user.password);
-            console.log(`Usuário ${user.email} criado com sucesso`);
-        } catch (error) {
-            console.log(`Usuário ${user.email} já existe ou erro:`, error);
+function loadCharacterData() {
+    if (currentUser) {
+        const userKey = `dndCharacter_${currentUser.uid}`;
+        const saved = localStorage.getItem(userKey);
+        if (saved) {
+            const savedCharacter = JSON.parse(saved);
+            // Mesclar dados salvos com o personagem atual
+            character = { ...character, ...savedCharacter };
         }
     }
 }
