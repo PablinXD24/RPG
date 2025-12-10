@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Tela de Login -->
     <div id="login-screen" class="login-screen">
         <div class="login-container">
             <div class="login-header">
@@ -36,13 +35,13 @@
             </div>
             
             <div class="login-info">
-                <p>Usuários: pablorpg, pamela, joao, jaqueline, duda, dante</p>
+                <p>Mestres: pablorpg, dante</p>
+                <p>Jogadores: joao, pamela, etc.</p>
                 <p>Senha: RPG2025</p>
             </div>
         </div>
     </div>
 
-    <!-- Aplicação Principal (inicialmente oculta) -->
     <div id="main-app" class="main-app" style="display: none;">
         <div class="container">
             <header>
@@ -54,28 +53,40 @@
                 </div>
             </header>
             
-            <!-- Painel de Administração (apenas para pablorpg) -->
-            <div id="admin-panel" class="admin-panel" style="display: none;">
-                <div class="section-card">
-                    <h2>👑 Painel de Administração</h2>
-                    <div class="admin-form">
-                        <h3>Adicionar Novo Usuário</h3>
-                        <div class="form-group">
-                            <label for="new-username">Nome de Usuário</label>
-                            <input type="text" id="new-username" placeholder="Ex: novousuario">
-                        </div>
-                        <div class="form-group">
-                            <label for="new-password">Senha</label>
-                            <input type="password" id="new-password" placeholder="Senha">
-                        </div>
-                        <button id="add-user-btn" class="btn-primary">Adicionar Usuário</button>
-                        <div id="admin-message" class="admin-message"></div>
+            <div id="gm-panel" class="section-card mb-2" style="display: none; border-left: 4px solid var(--accent-burgundy);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>👑 Painel do Mestre</h2>
+                    <button onclick="logout()" class="logout-btn" style="background: var(--accent-burgundy);">Sair do Sistema</button>
+                </div>
+                <p class="text-small mb-2">Selecione um jogador abaixo para abrir e modificar a ficha dele.</p>
+                
+                <div class="gm-controls">
+                    <button onclick="loadPlayerList()" class="btn-primary" style="margin-top: 0;">🔄 Atualizar Lista</button>
+                    <button id="add-user-toggle-btn" class="logout-btn" style="background: var(--primary-light); margin-left: 10px;">+ Novo Jogador</button>
+                </div>
+
+                <div id="players-list-grid" class="compact-grid mt-2">
                     </div>
+
+                <div id="admin-user-creation" class="admin-form mt-2" style="display: none; padding-top: 10px; border-top: 1px solid #ccc;">
+                    <h3>Cadastrar Novo Jogador</h3>
+                    <div class="form-group">
+                        <input type="text" id="new-username" placeholder="Usuário (Ex: jaqueline)">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="new-password" placeholder="Senha">
+                    </div>
+                    <button id="add-user-btn" class="btn-primary">Criar Cadastro</button>
+                    <div id="admin-message" class="admin-message"></div>
                 </div>
             </div>
+
+            <div id="editing-banner" style="display: none; background: var(--accent-burgundy); color: white; padding: 10px; font-weight: bold; margin-bottom: 15px; border-radius: 6px; align-items: center; justify-content: space-between;">
+                <span>⚠️ Editando: <span id="editing-target-name">...</span></span>
+                <button onclick="closeGmEditor()" style="font-size: 0.8rem; padding: 5px 10px; background: rgba(0,0,0,0.3); border: 1px solid white; cursor: pointer; color: white;">✕ Fechar Ficha</button>
+            </div>
             
-            <div class="content-area">
-                <!-- Regras -->
+            <div class="content-area" id="game-content">
                 <div class="section-card rules-section">
                     <h2>📖 Regras do Sistema</h2>
                     
@@ -110,16 +121,13 @@
 
                     <h3 class="mt-2">👥 Raças</h3>
                     <div class="compact-grid" id="race-grid">
-                        <!-- Preenchido por JS -->
-                    </div>
+                        </div>
 
                     <h3 class="mt-2">⚔️ Classes</h3>
                     <div class="compact-grid" id="class-grid">
-                        <!-- Preenchido por JS -->
-                    </div>
+                        </div>
                 </div>
                 
-                <!-- Personagem -->
                 <div class="section-card character-section">
                     <h2>👤 Criar Personagem</h2>
                     
@@ -147,8 +155,7 @@
                     <div class="rule-card">
                         <h3>4. Atributos</h3>
                         <div class="attributes-grid" id="attributes-grid">
-                            <!-- Preenchido por JS -->
-                        </div>
+                            </div>
                     </div>
 
                     <div class="character-sheet">
@@ -182,7 +189,6 @@
                     </div>
                 </div>
 
-                <!-- Calculadora de Vida e Armadura -->
                 <div class="section-card calculator-section">
                     <h2>🧮 Calculadora Rápida</h2>
                     <p class="text-small mb-2">Teste combinações de raça, classe e armadura</p>
@@ -191,14 +197,12 @@
                         <div>
                             <label class="sheet-label">Raça:</label>
                             <select id="calc-race-select" onchange="updateCalculator()">
-                                <!-- Preenchido por JS -->
-                            </select>
+                                </select>
                         </div>
                         <div>
                             <label class="sheet-label">Classe:</label>
                             <select id="calc-class-select" onchange="updateCalculator()">
-                                <!-- Preenchido por JS -->
-                            </select>
+                                </select>
                         </div>
                         <div>
                             <label class="sheet-label">Armadura:</label>
@@ -230,7 +234,6 @@
                     </div>
                 </div>
 
-                <!-- Sistema de Peso -->
                 <div class="section-card weight-section">
                     <h2>⚖️ Sistema de Peso</h2>
                     
@@ -308,7 +311,6 @@
             </div>
         </div>
 
-        <!-- Nova Aba - Ficha de Personagem Editável -->
         <div class="character-tab" id="character-tab">
             <div class="container">
                 <div class="tab-header">
@@ -350,8 +352,7 @@
                     <div class="sheet-section">
                         <h3>🎯 Atributos</h3>
                         <div class="attributes-detailed" id="attributes-detailed">
-                            <!-- Preenchido por JS -->
-                        </div>
+                            </div>
                     </div>
 
                     <div class="sheet-section">
@@ -379,15 +380,13 @@
                     <div class="sheet-section">
                         <h3>✨ Habilidades Especiais</h3>
                         <div class="abilities-section" id="abilities-section">
-                            <!-- Preenchido por JS -->
-                        </div>
+                            </div>
                     </div>
 
                     <div class="sheet-section">
                         <h3>🎒 Inventário</h3>
                         <div class="inventory-detailed" id="inventory-detailed">
-                            <!-- Preenchido por JS -->
-                        </div>
+                            </div>
                         <div class="add-item-detailed">
                             <input type="text" id="new-item-name" placeholder="Nome do item">
                             <input type="number" id="new-item-weight" placeholder="Peso (kg)" step="0.1" min="0">
@@ -409,8 +408,7 @@
             </div>
         </div>
 
-        <!-- Menu Mobile -->
-        <div class="mobile-menu">
+        <div class="mobile-menu" id="mobile-menu">
             <button onclick="scrollToSection('rules')">
                 📖 <span>Regras</span>
             </button>
@@ -427,9 +425,6 @@
                 📜 <span>Ficha</span>
             </button>
         </div>
-
-        <!-- Template PDF (oculto) -->
-        <div id="pdf-sheet" style="display:none;"></div>
     </div>
 
     <script src="script.js"></script>
