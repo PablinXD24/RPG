@@ -1,4 +1,4 @@
-// Your web app's Firebase configuration
+// Configuração do Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyABnnz6XLEPdr8BqEOAdkNRrVVoGdVEzwA",
   authDomain: "rpg25-efb93.firebaseapp.com",
@@ -8,13 +8,18 @@ const firebaseConfig = {
   appId: "1:1083914328300:web:d6532d2dd37615a893edc9"
 };
 
-
 // Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Dados do sistema COMPLETO com todas as classes
+// --- CONTROLE DE MESTRE E USUÁRIOS ---
+let currentUser = null;
+let isGM = false;
+let currentEditingUid = null; // ID de quem estamos editando
+const GMs = ['dante@rpg.com', 'pablorpg@rpg.com']; // Lista de Mestres
+
+// Dados do sistema COMPLETO
 const systemData = {
     racas: [
         { 
@@ -118,7 +123,7 @@ const systemData = {
     }
 };
 
-// Estado do personagem - INVENTÁRIO VAZIO
+// Estrutura padrão do personagem
 let character = {
     race: null,
     class: null,
@@ -126,8 +131,7 @@ let character = {
     attributes: { FOR: 5, CON: 5, DES: 5, MENTE: 5, CAR: 5 },
     name: "Aventureiro",
     raceCustomization: [],
-    inventory: [], // Inventário começa vazio
-    // Novos campos para a ficha editável
+    inventory: [],
     level: 1,
     xp: 0,
     pv: 10,
@@ -138,39 +142,47 @@ let character = {
     customAbilities: []
 };
 
-// Estado do usuário
-let currentUser = null;
-let isAdmin = false;
-
 // Inicialização
 document.addEventListener('DOMContentLoaded', function() {
-    // Configurar listeners de login
     document.getElementById('login-btn').addEventListener('click', login);
     document.getElementById('logout-btn').addEventListener('click', logout);
     document.getElementById('add-user-btn').addEventListener('click', addNewUser);
     
-    // Permitir login com Enter
     document.getElementById('password').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            login();
-        }
+        if (e.key === 'Enter') login();
     });
     
-    // Verificar se o usuário já está logado
+    // Auth Listener
     auth.onAuthStateChanged(user => {
         if (user) {
-            // Usuário está logado
             currentUser = user;
-            isAdmin = user.email === 'pablorpg@rpg.com';
-            showMainApp();
-            loadUserCharacter(); // Carregar dados específicos do usuário
+            // Define se é GM com base no email
+            isGM = GMs.includes(user.email);
+            
+            showMainApp(); // Configura UI
+
+            if (isGM) {
+                // MESTRE: Não carrega ficha inicial. Prepara o painel.
+                currentEditingUid = null;
+                loadPlayerList();
+                document.getElementById('game-content').style.display = 'none'; // Esconde a ficha
+                document.getElementById('editing-banner').style.display = 'none';
+                document.getElementById('mobile-menu').style.display = 'none';
+            } else {
+                // JOGADOR: Carrega a ficha dele
+                currentEditingUid = user.uid;
+                loadUserCharacter();
+                document.getElementById('game-content').style.display = 'grid'; // Grid para desktop
+                if(window.innerWidth < 768) document.getElementById('game-content').style.display = 'flex';
+                
+                document.getElementById('editing-banner').style.display = 'none';
+                document.getElementById('mobile-menu').style.display = 'flex';
+            }
         } else {
-            // Usuário não está logado
             showLoginScreen();
         }
     });
     
-    // Inicializar dados do sistema
     populateRaces();
     populateClasses();
     populateAttributes();
@@ -180,108 +192,62 @@ document.addEventListener('DOMContentLoaded', function() {
     updateWeightSystem();
 });
 
-// Funções de autenticação
+// Autenticação
 function login() {
     const username = document.getElementById('username').value.trim().toLowerCase();
     const password = document.getElementById('password').value;
     const messageElement = document.getElementById('login-message');
     
     if (!username || !password) {
-        showMessage(messageElement, 'Por favor, preencha todos os campos', 'error');
+        showMessage(messageElement, 'Preencha todos os campos', 'error');
         return;
     }
     
-    // Adicionar domínio padrão para login com email
     const email = `${username}@rpg.com`;
-    
     auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-            // Login bem-sucedido
-            showMessage(messageElement, 'Login realizado com sucesso!', 'success');
-        })
-        .catch((error) => {
-            // Tratar erros de login
-            let errorMessage = 'Erro ao fazer login';
-            
-            switch (error.code) {
-                case 'auth/user-not-found':
-                    errorMessage = 'Usuário não encontrado';
-                    break;
-                case 'auth/wrong-password':
-                    errorMessage = 'Senha incorreta';
-                    break;
-                case 'auth/invalid-email':
-                    errorMessage = 'Email inválido';
-                    break;
-                default:
-                    errorMessage = error.message;
-            }
-            
-            showMessage(messageElement, errorMessage, 'error');
-        });
+        .then(() => showMessage(messageElement, 'Login sucesso!', 'success'))
+        .catch((error) => showMessage(messageElement, 'Erro no login: ' + error.code, 'error'));
 }
 
 function logout() {
-    auth.signOut()
-        .then(() => {
-            currentUser = null;
-            isAdmin = false;
-            showLoginScreen();
-        })
-        .catch((error) => {
-            console.error('Erro ao fazer logout:', error);
-        });
+    auth.signOut().then(() => {
+        currentUser = null;
+        isGM = false;
+        showLoginScreen();
+    });
 }
 
 function addNewUser() {
+    // Apenas mestre pode criar usuários agora (via painel)
     const username = document.getElementById('new-username').value.trim().toLowerCase();
     const password = document.getElementById('new-password').value;
     const messageElement = document.getElementById('admin-message');
     
     if (!username || !password) {
-        showMessage(messageElement, 'Por favor, preencha todos os campos', 'error');
+        showMessage(messageElement, 'Preencha usuário e senha', 'error');
         return;
     }
     
-    // Adicionar domínio padrão para criação de usuário
     const email = `${username}@rpg.com`;
+    // Nota: createUserWithEmailAndPassword loga automaticamente o novo usuário.
+    // Em um app real, idealmente usaríamos Cloud Functions ou um app secundário.
+    // Aqui, vamos criar e depois deslogar/relogar ou apenas avisar.
+    // Pela simplicidade do Firebase Client SDK, ele vai trocar o Auth.
+    // Vamos alertar o mestre disso.
     
     auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-            showMessage(messageElement, `Usuário ${username} criado com sucesso!`, 'success');
-            document.getElementById('new-username').value = '';
-            document.getElementById('new-password').value = '';
+        .then(() => {
+            alert(`Usuário ${username} criado! O sistema fez login automático nele. Por favor, faça logout e entre como Mestre novamente.`);
+            // O auth listener vai disparar e mudar a tela
         })
-        .catch((error) => {
-            let errorMessage = 'Erro ao criar usuário';
-            
-            switch (error.code) {
-                case 'auth/email-already-in-use':
-                    errorMessage = 'Este usuário já existe';
-                    break;
-                case 'auth/weak-password':
-                    errorMessage = 'A senha é muito fraca';
-                    break;
-                case 'auth/invalid-email':
-                    errorMessage = 'Nome de usuário inválido';
-                    break;
-                default:
-                    errorMessage = error.message;
-            }
-            
-            showMessage(messageElement, errorMessage, 'error');
-        });
+        .catch((error) => showMessage(messageElement, error.message, 'error'));
 }
 
 function showMessage(element, message, type) {
     element.textContent = message;
     element.className = `${element.className.split(' ')[0]} ${type}`;
     element.style.display = 'block';
-    
-    // Limpar mensagem após alguns segundos
-    setTimeout(() => {
-        element.style.display = 'none';
-    }, 5000);
+    setTimeout(() => element.style.display = 'none', 5000);
 }
 
 function showLoginScreen() {
@@ -292,57 +258,91 @@ function showLoginScreen() {
 function showMainApp() {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('main-app').style.display = 'block';
-    
-    // Atualizar informações do usuário
     document.getElementById('user-display').textContent = currentUser.email.split('@')[0];
     
-    // Mostrar/ocultar painel de administração
-    if (isAdmin) {
-        document.getElementById('admin-panel').style.display = 'block';
+    if (isGM) {
+        document.getElementById('gm-panel').style.display = 'block';
+        document.getElementById('logout-btn').style.display = 'none'; // Já tem no painel
+        
+        // Toggle do form de criar usuário
+        const toggleBtn = document.getElementById('add-user-toggle-btn');
+        if(toggleBtn) {
+            toggleBtn.onclick = () => {
+                 const form = document.getElementById('admin-user-creation');
+                 form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            };
+        }
     } else {
-        document.getElementById('admin-panel').style.display = 'none';
+        document.getElementById('gm-panel').style.display = 'none';
+        document.getElementById('logout-btn').style.display = 'block';
     }
 }
 
-// Funções de salvamento individuais por usuário
-async function loadUserCharacter() {
-    if (!currentUser) return;
-    
+// --- LÓGICA DE DADOS DO PERSONAGEM ---
+
+async function loadUserCharacter(targetUid = null) {
+    // Define qual ID carregar. Se null, tenta o currentUser.
+    const uidToLoad = targetUid || (currentUser ? currentUser.uid : null);
+    if (!uidToLoad) return;
+
+    currentEditingUid = uidToLoad;
+
     try {
-        const docRef = db.collection('characters').doc(currentUser.uid);
+        const docRef = db.collection('characters').doc(uidToLoad);
         const doc = await docRef.get();
         
         if (doc.exists) {
             const savedCharacter = doc.data();
-            // Mesclar dados salvos com o personagem atual
+            // Mescla para garantir que campos novos não quebrem fichas antigas
             character = { ...character, ...savedCharacter };
             
-            // Atualizar a interface com os dados carregados
+            // Se for mestre, atualiza o nome no banner
+            if (isGM) {
+                document.getElementById('editing-target-name').textContent = character.name || "Sem Nome";
+            }
+            
             updateInterfaceAfterLoad();
         } else {
-            // Primeiro login - usar dados padrão
-            console.log('Primeiro login - usando dados padrão');
+            console.log('Ficha não encontrada (novo usuário ou erro).');
+            // Se for Mestre abrindo um jogador novo/vazio
+            if (isGM && uidToLoad !== currentUser.uid) {
+                resetCharacterStruct(); // Zera a variável local
+                character.name = "Novo Personagem"; 
+                updateInterfaceAfterLoad(); // Renderiza vazio
+            } else if (!isGM) {
+                // Jogador novo logando pela primeira vez
+                console.log('Primeiro login - usando dados padrão');
+            }
         }
     } catch (error) {
-        console.error('Erro ao carregar personagem:', error);
+        console.error('Erro ao carregar:', error);
+        if (isGM) alert('Erro ao acessar ficha. Verifique as regras do banco de dados.');
     }
 }
 
 async function saveUserCharacter() {
     if (!currentUser) return;
     
+    // Mestre só salva se tiver alguém selecionado
+    if (isGM && !currentEditingUid) return;
+
+    const targetUid = currentEditingUid || currentUser.uid;
+    
     try {
-        await db.collection('characters').doc(currentUser.uid).set(character);
-        console.log('Personagem salvo com sucesso!');
+        await db.collection('characters').doc(targetUid).set(character);
+        console.log('Salvo em:', targetUid);
+        
+        if (isGM) loadPlayerList(); // Atualiza lista de nomes/níveis
         return true;
     } catch (error) {
-        console.error('Erro ao salvar personagem:', error);
+        console.error('Erro ao salvar:', error);
         return false;
     }
 }
 
 function updateInterfaceAfterLoad() {
-    // Atualizar seleções de raça
+    // Seleção visual de Raça
+    document.querySelectorAll('.race-card').forEach(card => card.classList.remove('selected'));
     if (character.race) {
         document.querySelectorAll('.race-card').forEach(card => {
             if (card.querySelector('h4').textContent === character.race.nome) {
@@ -350,9 +350,12 @@ function updateInterfaceAfterLoad() {
             }
         });
         document.getElementById('selected-race').textContent = character.race.nome;
+    } else {
+        document.getElementById('selected-race').textContent = "Nenhuma selecionada";
     }
     
-    // Atualizar seleções de classe
+    // Seleção visual de Classe
+    document.querySelectorAll('.class-card').forEach(card => card.classList.remove('selected'));
     if (character.class) {
         document.querySelectorAll('.class-card').forEach(card => {
             if (card.querySelector('h4').textContent === character.class.nome) {
@@ -360,31 +363,27 @@ function updateInterfaceAfterLoad() {
             }
         });
         document.getElementById('selected-class').textContent = character.class.nome;
+    } else {
+        document.getElementById('selected-class').textContent = "Nenhuma selecionada";
     }
     
-    // Atualizar armadura
     document.getElementById('armor-select').value = character.armor;
     
-    // Atualizar atributos
     populateAttributes();
-    
-    // Atualizar toda a interface
     updateCharacterSheet();
     updateCalculator();
     updateWeightSystem();
 }
 
-// Funções de navegação mobile
+// Funções de Interface
 function scrollToSection(section) {
     const element = document.querySelector(`.${section}-section`);
-    if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-    }
+    if (element) element.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Funções do sistema
 function populateRaces() {
     const raceGrid = document.getElementById('race-grid');
+    raceGrid.innerHTML = ''; // Limpa para evitar duplicatas
     systemData.racas.forEach(race => {
         const card = document.createElement('div');
         card.className = 'race-card';
@@ -393,7 +392,7 @@ function populateRaces() {
             <p class="text-xsmall">FOR ${race.atributos_base.FOR} | CON ${race.atributos_base.CON} | DES ${race.atributos_base.DES}</p>
             <p class="text-xsmall">MENTE ${race.atributos_base.MENTE} | CAR ${race.atributos_base.CAR}</p>
             <p class="text-xsmall" style="color: var(--accent-purple); margin-top: 4px;">${race.bonus_customizacao_jogador}</p>
-            <p class="text-xsmall" style="color: var(--accent-burgundy); margin-top: 4px;"><strong>Habilidades:</strong> ${race.habilidades}</p>
+            <p class="text-xsmall" style="color: var(--accent-burgundy); margin-top: 4px;"><strong>Hab:</strong> ${race.habilidades}</p>
         `;
         card.onclick = () => selectRace(race);
         raceGrid.appendChild(card);
@@ -402,6 +401,7 @@ function populateRaces() {
 
 function populateClasses() {
     const classGrid = document.getElementById('class-grid');
+    classGrid.innerHTML = '';
     systemData.classes.forEach(cls => {
         const card = document.createElement('div');
         card.className = 'class-card';
@@ -413,28 +413,6 @@ function populateClasses() {
         card.onclick = () => selectClass(cls);
         classGrid.appendChild(card);
     });
-}
-
-function populateCalculatorSelectors() {
-    const raceSelect = document.getElementById('calc-race-select');
-    const classSelect = document.getElementById('calc-class-select');
-    
-    systemData.racas.forEach(race => {
-        const option = document.createElement('option');
-        option.value = race.nome;
-        option.textContent = race.nome;
-        raceSelect.appendChild(option);
-    });
-    
-    systemData.classes.forEach(cls => {
-        const option = document.createElement('option');
-        option.value = cls.nome;
-        option.textContent = cls.nome;
-        classSelect.appendChild(option);
-    });
-    
-    raceSelect.value = 'Humano';
-    classSelect.value = 'Guerreiro';
 }
 
 function populateAttributes() {
@@ -463,14 +441,12 @@ function selectRace(race) {
     event.currentTarget.classList.add('selected');
     document.getElementById('selected-race').textContent = race.nome;
     
-    // Mostrar customização
     showRaceCustomization(race);
-    
     populateAttributes();
     updateCharacterSheet();
     updateCalculator();
     updateWeightSystem();
-    saveUserCharacter(); // Salvar automaticamente
+    saveUserCharacter();
 }
 
 function showRaceCustomization(race) {
@@ -496,19 +472,13 @@ function showRaceCustomization(race) {
 function generateCustomizationOptions(race) {
     if (race.nome === "Humano") {
         return ['FOR', 'CON', 'DES', 'MENTE', 'CAR'].map(attr => `
-            <div class="customization-option" data-attribute="${attr}">
-                +1 ${attr}
-            </div>
+            <div class="customization-option" data-attribute="${attr}">+1 ${attr}</div>
         `).join('');
     } else {
         const options = race.bonus_customizacao_jogador.split(' ou ');
         return options.map(option => {
             const attr = option.match(/[A-Z]{2,}/)[0];
-            return `
-                <div class="customization-option" data-attribute="${attr}">
-                    ${option}
-                </div>
-            `;
+            return `<div class="customization-option" data-attribute="${attr}">${option}</div>`;
         }).join('');
     }
 }
@@ -527,7 +497,6 @@ function handleCustomizationSelection(race, selectedAttr) {
         character.raceCustomization = [selectedAttr];
     }
     
-    // Atualizar seleção visual
     document.querySelectorAll('.customization-option').forEach(option => {
         option.classList.remove('selected');
         if (character.raceCustomization.includes(option.dataset.attribute)) {
@@ -540,18 +509,13 @@ function handleCustomizationSelection(race, selectedAttr) {
     updateCharacterSheet();
     updateCalculator();
     updateWeightSystem();
-    saveUserCharacter(); // Salvar automaticamente
+    saveUserCharacter();
 }
 
 function applyRaceCustomization() {
     if (!character.race) return;
-    
     character.attributes = { ...character.race.atributos_base };
-    
-    character.raceCustomization.forEach(attr => {
-        character.attributes[attr] += 1;
-    });
-    
+    character.raceCustomization.forEach(attr => character.attributes[attr] += 1);
     if (character.class) {
         Object.keys(character.class.bonus_atributos).forEach(attr => {
             character.attributes[attr] += character.class.bonus_atributos[attr];
@@ -562,40 +526,38 @@ function applyRaceCustomization() {
 function selectClass(cls) {
     character.class = cls;
     applyRaceCustomization();
-    
     document.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected'));
     event.currentTarget.classList.add('selected');
     document.getElementById('selected-class').textContent = cls.nome;
-    
     populateAttributes();
     updateCharacterSheet();
     updateCalculator();
     updateWeightSystem();
-    saveUserCharacter(); // Salvar automaticamente
+    saveUserCharacter();
 }
 
 function updateCharacter() {
     character.armor = document.getElementById('armor-select').value;
     updateCharacterSheet();
-    saveUserCharacter(); // Salvar automaticamente
+    saveUserCharacter();
 }
 
 function updateCharacterSheet() {
-    if (character.race) {
-        document.getElementById('sheet-race').textContent = character.race.nome;
-    }
+    if (character.race) document.getElementById('sheet-race').textContent = character.race.nome;
+    else document.getElementById('sheet-race').textContent = "---";
+
     if (character.class) {
         document.getElementById('sheet-class').textContent = character.class.nome;
         document.getElementById('special-rule-container').innerHTML = `
-            <div class="special-rule">
-                <strong>Habilidade:</strong> ${character.class.regra_unica}
-            </div>
-        `;
+            <div class="special-rule"><strong>Habilidade:</strong> ${character.class.regra_unica}</div>`;
+    } else {
+        document.getElementById('sheet-class').textContent = "---";
+        document.getElementById('special-rule-container').innerHTML = "";
     }
     
-    // Calcular PV e CA
     const conMod = character.attributes.CON - 5;
     const pv = 10 + (character.class?.bonus_pv || 0) + conMod;
+    
     const desMod = character.attributes.DES - 5;
     const armor = systemData.armaduras[character.armor];
     const ca = 10 + Math.min(desMod, armor.des_limite) + armor.bonus_ca;
@@ -605,6 +567,26 @@ function updateCharacterSheet() {
 }
 
 // Calculadora
+function populateCalculatorSelectors() {
+    const raceSelect = document.getElementById('calc-race-select');
+    const classSelect = document.getElementById('calc-class-select');
+    raceSelect.innerHTML = ""; classSelect.innerHTML = ""; // Limpar antes
+
+    systemData.racas.forEach(race => {
+        const option = document.createElement('option');
+        option.value = race.nome; option.textContent = race.nome;
+        raceSelect.appendChild(option);
+    });
+    systemData.classes.forEach(cls => {
+        const option = document.createElement('option');
+        option.value = cls.nome; option.textContent = cls.nome;
+        classSelect.appendChild(option);
+    });
+    
+    if(systemData.racas.length > 0) raceSelect.value = systemData.racas[0].nome;
+    if(systemData.classes.length > 0) classSelect.value = systemData.classes[0].nome;
+}
+
 function updateCalculator() {
     const raceName = document.getElementById('calc-race-select').value;
     const className = document.getElementById('calc-class-select').value;
@@ -616,15 +598,12 @@ function updateCalculator() {
     
     if (!race || !cls) return;
     
-    // Calcular atributos
     let attributes = { ...race.atributos_base };
-    Object.keys(cls.bonus_atributos).forEach(attr => {
-        attributes[attr] += cls.bonus_atributos[attr];
-    });
+    Object.keys(cls.bonus_atributos).forEach(attr => attributes[attr] += cls.bonus_atributos[attr]);
     
-    // Calcular PV e CA
     const conMod = attributes.CON - 5;
     const pv = 10 + cls.bonus_pv + conMod;
+    
     const desMod = attributes.DES - 5;
     const ca = 10 + Math.min(desMod, armor.des_limite) + armor.bonus_ca;
     
@@ -642,24 +621,17 @@ function updateWeightSystem() {
     document.getElementById('weight-lmc').textContent = lmc.toFixed(1);
     document.getElementById('weight-current').textContent = totalWeight.toFixed(1);
     
-    // Status de carga
     let status, level, percentage;
-    if (totalWeight > lmc) {
-        status = "Imóvel"; level = "imovel"; percentage = 100;
-    } else if (totalWeight > lmc * 2/3) {
-        status = "Peso Pesado"; level = "pesado"; percentage = (totalWeight / lmc) * 100;
-    } else if (totalWeight > lmc / 3) {
-        status = "Peso Médio"; level = "medio"; percentage = (totalWeight / lmc) * 100;
-    } else {
-        status = "Peso Leve"; level = "leve"; percentage = (totalWeight / lmc) * 100;
-    }
+    if (totalWeight > lmc) { status = "Imóvel"; level = "imovel"; percentage = 100; }
+    else if (totalWeight > lmc * 2/3) { status = "Peso Pesado"; level = "pesado"; percentage = (totalWeight / lmc) * 100; }
+    else if (totalWeight > lmc / 3) { status = "Peso Médio"; level = "medio"; percentage = (totalWeight / lmc) * 100; }
+    else { status = "Peso Leve"; level = "leve"; percentage = (totalWeight / lmc) * 100; }
     
     document.getElementById('weight-status').textContent = status;
     const bar = document.getElementById('weight-bar');
     bar.className = 'weight-bar ' + level;
     bar.style.width = Math.min(percentage, 100) + '%';
     
-    // Penalidades
     const penaltyElement = document.getElementById('weight-penalty');
     switch(level) {
         case 'leve': penaltyElement.textContent = "Sem penalidades"; break;
@@ -668,7 +640,6 @@ function updateWeightSystem() {
         case 'imovel': penaltyElement.textContent = "Não pode se mover"; break;
     }
     
-    // Atualizar exemplos
     document.getElementById('weight-light-example').textContent = (lmc / 3).toFixed(1);
     document.getElementById('weight-medium-example').textContent = (lmc * 2 / 3).toFixed(1);
     document.getElementById('weight-heavy-example').textContent = lmc.toFixed(1);
@@ -681,21 +652,13 @@ function updateInventoryDisplay() {
     container.innerHTML = '';
     
     if (character.inventory.length === 0) {
-        container.innerHTML = `
-            <div class="empty-inventory">
-                <p>🎁 Inventário vazio</p>
-                <p class="text-xsmall mt-1">Adicione itens usando o formulário abaixo</p>
-            </div>
-        `;
+        container.innerHTML = `<div class="empty-inventory"><p>🎁 Inventário vazio</p><p class="text-xsmall mt-1">Adicione itens usando o formulário abaixo</p></div>`;
     } else {
         character.inventory.forEach((item, index) => {
             const div = document.createElement('div');
             div.className = 'inventory-item';
             div.innerHTML = `
-                <div>
-                    <strong>${item.nome}</strong>
-                    <div class="text-xsmall">${item.peso} kg</div>
-                </div>
+                <div><strong>${item.nome}</strong><div class="text-xsmall">${item.peso} kg</div></div>
                 <button onclick="removeItem(${index})">🗑️</button>
             `;
             container.appendChild(div);
@@ -707,30 +670,30 @@ function addItem() {
     const name = document.getElementById('item-name').value.trim();
     const weight = parseFloat(document.getElementById('item-weight').value);
     
-    if (name && weight > 0) {
+    if (name && weight >= 0) {
         character.inventory.push({ nome: name, peso: weight });
         document.getElementById('item-name').value = '';
         document.getElementById('item-weight').value = '';
         updateWeightSystem();
-        saveUserCharacter(); // Salvar automaticamente
-    } else {
-        alert('Por favor, preencha o nome e o peso do item corretamente!');
-    }
+        saveUserCharacter();
+    } else { alert('Preencha nome e peso!'); }
 }
 
 function removeItem(index) {
     character.inventory.splice(index, 1);
     updateWeightSystem();
-    saveUserCharacter(); // Salvar automaticamente
+    saveUserCharacter();
 }
 
-// Nova Aba - Ficha de Personagem Editável
+// Ficha Editável
 function openCharacterTab() {
     if (!character.race || !character.class) {
-        alert('Selecione uma raça e classe primeiro!');
-        return;
+        // Se for mestre, deixa abrir mesmo vazio para preencher
+        if(!isGM) {
+            alert('Selecione uma raça e classe primeiro!');
+            return;
+        }
     }
-    
     updateCharacterTab();
     document.getElementById('character-tab').classList.add('active');
 }
@@ -740,7 +703,6 @@ function closeCharacterTab() {
 }
 
 function updateCharacterTab() {
-    // Informações básicas
     document.getElementById('tab-name').value = character.name;
     document.getElementById('tab-race').textContent = character.race?.nome || '---';
     document.getElementById('tab-class').textContent = character.class?.nome || '---';
@@ -748,10 +710,8 @@ function updateCharacterTab() {
     document.getElementById('tab-level').value = character.level;
     document.getElementById('tab-xp').value = character.xp;
     
-    // Atributos
     const attributesContainer = document.getElementById('attributes-detailed');
     attributesContainer.innerHTML = '';
-    
     ['FOR', 'CON', 'DES', 'MENTE', 'CAR'].forEach(attr => {
         const value = character.attributes[attr];
         const mod = value - 5;
@@ -765,56 +725,28 @@ function updateCharacterTab() {
         attributesContainer.appendChild(card);
     });
     
-    // Combate
     document.getElementById('tab-pv').value = character.pv;
     document.getElementById('tab-ca').value = character.ca;
     document.getElementById('tab-pv-max').value = character.pvMax;
     document.getElementById('tab-iniciativa').value = character.iniciativa;
     
-    // Habilidades
     const abilitiesContainer = document.getElementById('abilities-section');
     abilitiesContainer.innerHTML = '';
     
     if (character.race) {
-        const raceAbility = document.createElement('div');
-        raceAbility.className = 'ability-item';
-        raceAbility.innerHTML = `
-            <div class="ability-name">🏹 ${character.race.nome}</div>
-            <div class="ability-description" contenteditable="true" onblur="updateCharacterData()">${character.race.habilidades}</div>
-        `;
-        abilitiesContainer.appendChild(raceAbility);
+        abilitiesContainer.innerHTML += `<div class="ability-item"><div class="ability-name">🏹 ${character.race.nome}</div><div class="ability-description">${character.race.habilidades}</div></div>`;
     }
-    
     if (character.class) {
-        const classAbility = document.createElement('div');
-        classAbility.className = 'ability-item';
-        classAbility.innerHTML = `
-            <div class="ability-name">⚔️ ${character.class.nome}</div>
-            <div class="ability-description" contenteditable="true" onblur="updateCharacterData()">${character.class.regra_unica}</div>
-        `;
-        abilitiesContainer.appendChild(classAbility);
+        abilitiesContainer.innerHTML += `<div class="ability-item"><div class="ability-name">⚔️ ${character.class.nome}</div><div class="ability-description">${character.class.regra_unica}</div></div>`;
     }
     
-    // Adicionar campo para habilidades customizadas
-    const customAbility = document.createElement('div');
-    customAbility.className = 'ability-item';
-    customAbility.innerHTML = `
-        <div class="ability-name">✨ Habilidades Customizadas</div>
-        <div class="ability-description" contenteditable="true" placeholder="Adicione outras habilidades, talentos, magias..." onblur="updateCharacterData()">${character.customAbilities.join('\n')}</div>
-    `;
-    abilitiesContainer.appendChild(customAbility);
+    abilitiesContainer.innerHTML += `<div class="ability-item"><div class="ability-name">✨ Habilidades Customizadas</div><div class="ability-description" contenteditable="true" id="custom-abilities-input" onblur="updateCharacterData()">${character.customAbilities.join('\n')}</div></div>`;
     
-    // Inventário
+    // Inventário na Aba
     const inventoryContainer = document.getElementById('inventory-detailed');
     inventoryContainer.innerHTML = '';
-    
     if (character.inventory.length === 0) {
-        inventoryContainer.innerHTML = `
-            <div class="empty-inventory">
-                <p>🎁 Inventário vazio</p>
-                <p class="text-xsmall mt-1">Adicione itens abaixo</p>
-            </div>
-        `;
+        inventoryContainer.innerHTML = `<div class="empty-inventory"><p>🎁 Vazio</p></div>`;
     } else {
         character.inventory.forEach((item, index) => {
             const div = document.createElement('div');
@@ -822,52 +754,38 @@ function updateCharacterTab() {
             div.innerHTML = `
                 <input type="text" class="item-name-detailed" value="${item.nome}" data-index="${index}" onchange="updateInventoryItem(this)">
                 <input type="number" class="item-weight-detailed" value="${item.peso}" step="0.1" min="0" data-index="${index}" onchange="updateInventoryItem(this)">
-                <div class="item-controls-detailed">
-                    <button onclick="removeItemDetailed(${index})">🗑️</button>
-                </div>
+                <div class="item-controls-detailed"><button onclick="removeItemDetailed(${index})">🗑️</button></div>
             `;
             inventoryContainer.appendChild(div);
         });
     }
-    
-    // Anotações
     document.getElementById('tab-notes').value = character.notes;
 }
 
 function updateAttribute(input) {
     const attr = input.dataset.attribute;
-    const value = parseInt(input.value);
-    character.attributes[attr] = value;
-    
-    // Atualizar modificador
-    const mod = value - 5;
+    character.attributes[attr] = parseInt(input.value);
+    const mod = character.attributes[attr] - 5;
     input.parentElement.querySelector('.attribute-mod-detailed').textContent = mod >= 0 ? '+' + mod : mod;
-    
     updateCharacterData();
 }
 
 function updateInventoryItem(input) {
     const index = parseInt(input.dataset.index);
-    if (input.classList.contains('item-name-detailed')) {
-        character.inventory[index].nome = input.value;
-    } else {
-        character.inventory[index].peso = parseFloat(input.value);
-    }
+    if (input.classList.contains('item-name-detailed')) character.inventory[index].nome = input.value;
+    else character.inventory[index].peso = parseFloat(input.value);
     updateCharacterData();
 }
 
 function addItemDetailed() {
     const name = document.getElementById('new-item-name').value.trim();
     const weight = parseFloat(document.getElementById('new-item-weight').value);
-    
-    if (name && weight > 0) {
+    if (name && weight >= 0) {
         character.inventory.push({ nome: name, peso: weight });
         document.getElementById('new-item-name').value = '';
         document.getElementById('new-item-weight').value = '';
         updateCharacterTab();
         updateCharacterData();
-    } else {
-        alert('Por favor, preencha o nome e o peso do item corretamente!');
     }
 }
 
@@ -878,7 +796,6 @@ function removeItemDetailed(index) {
 }
 
 function updateCharacterData() {
-    // Atualizar dados do personagem com os valores dos campos
     character.name = document.getElementById('tab-name').value;
     character.level = parseInt(document.getElementById('tab-level').value);
     character.xp = parseInt(document.getElementById('tab-xp').value);
@@ -888,14 +805,111 @@ function updateCharacterData() {
     character.iniciativa = parseInt(document.getElementById('tab-iniciativa').value);
     character.notes = document.getElementById('tab-notes').value;
     
-    saveUserCharacter(); // Salvar automaticamente no Firestore
+    const customAbilsDiv = document.getElementById('custom-abilities-input');
+    if(customAbilsDiv) character.customAbilities = customAbilsDiv.innerText.split('\n');
+    
+    saveUserCharacter();
+    if(!document.getElementById('character-tab').classList.contains('active')) {
+        updateCharacterSheet();
+    }
 }
 
 async function saveCharacterData() {
     const success = await saveUserCharacter();
-    if (success) {
-        alert('✅ Personagem salvo com sucesso!');
-    } else {
-        alert('❌ Erro ao salvar personagem. Tente novamente.');
+    if (success) alert('✅ Salvo!');
+    else alert('❌ Erro ao salvar.');
+}
+
+// --- FUNÇÕES ESPECÍFICAS DO MESTRE ---
+
+async function loadPlayerList() {
+    if (!isGM) return;
+    const grid = document.getElementById('players-list-grid');
+    grid.innerHTML = '<p class="text-small">Carregando...</p>';
+    
+    try {
+        const snapshot = await db.collection('characters').get();
+        grid.innerHTML = '';
+        
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const uid = doc.id;
+            
+            // Pula mestres na lista se quiser (opcional)
+            // if (GMs.some(gm => data.email === gm)) return;
+
+            const card = document.createElement('div');
+            card.className = 'player-card-gm'; // Estilo definido no CSS ou inline abaixo
+            card.style.cssText = `
+                background: white; padding: 12px; border-radius: 8px;
+                border: 1px solid #e2e8f0; display: flex; 
+                justify-content: space-between; align-items: center;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            `;
+            
+            const raceClass = (data.race?.nome || '?') + ' / ' + (data.class?.nome || '?');
+            
+            card.innerHTML = `
+                <div>
+                    <div style="font-weight: bold; color: var(--accent-burgundy);">${data.name || 'Sem Nome'}</div>
+                    <div class="text-xsmall" style="color: var(--primary-light);">${raceClass} (Nv ${data.level || 1})</div>
+                </div>
+                <button onclick="gmEditPlayer('${uid}')" class="btn-primary" style="margin:0; width: auto; padding: 6px 12px; font-size: 0.8rem;">
+                    📝 Editar
+                </button>
+            `;
+            grid.appendChild(card);
+        });
+        
+        if (grid.children.length === 0) grid.innerHTML = '<p class="text-small">Nenhum jogador encontrado.</p>';
+
+    } catch (error) {
+        console.error(error);
+        grid.innerHTML = '<p class="text-small error">Erro ao listar. Verifique permissões.</p>';
     }
+}
+
+function gmEditPlayer(targetUid) {
+    // 1. Carrega os dados
+    loadUserCharacter(targetUid);
+    
+    // 2. Mostra a área de jogo
+    const contentArea = document.getElementById('game-content');
+    contentArea.style.display = window.innerWidth >= 768 ? 'grid' : 'flex';
+    document.getElementById('mobile-menu').style.display = 'flex';
+    
+    // 3. Mostra o banner
+    const banner = document.getElementById('editing-banner');
+    banner.style.display = 'flex';
+    
+    // 4. Rola a tela
+    setTimeout(() => contentArea.scrollIntoView({ behavior: 'smooth' }), 100);
+}
+
+function closeGmEditor() {
+    currentEditingUid = null;
+    document.getElementById('game-content').style.display = 'none';
+    document.getElementById('editing-banner').style.display = 'none';
+    document.getElementById('mobile-menu').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetCharacterStruct() {
+    character = {
+        race: null,
+        class: null,
+        armor: "Media",
+        attributes: { FOR: 5, CON: 5, DES: 5, MENTE: 5, CAR: 5 },
+        name: "Carregando...",
+        raceCustomization: [],
+        inventory: [],
+        level: 1,
+        xp: 0,
+        pv: 10,
+        pvMax: 10,
+        ca: 10,
+        iniciativa: 0,
+        notes: "",
+        customAbilities: []
+    };
 }
