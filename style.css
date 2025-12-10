@@ -118,6 +118,7 @@ body {
     border-radius: 6px;
     text-align: center;
     font-weight: bold;
+    display: none;
 }
 
 .login-message.error {
@@ -208,9 +209,19 @@ h1 {
     background: rgba(255,255,255,0.3);
 }
 
-/* Painel de Administração */
-.admin-panel {
-    margin-bottom: 20px;
+/* Painel de Administração/Mestre */
+.admin-panel, .section-card {
+    background: var(--card-bg);
+    padding: 16px;
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: var(--card-shadow);
+    color: var(--text-dark);
+}
+
+.gm-controls {
+    display: flex;
+    align-items: center;
 }
 
 .admin-form {
@@ -230,18 +241,7 @@ h1 {
     border-radius: 6px;
     text-align: center;
     font-weight: bold;
-}
-
-.admin-message.error {
-    background-color: rgba(239, 68, 68, 0.1);
-    color: var(--accent-burgundy);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.admin-message.success {
-    background-color: rgba(72, 187, 120, 0.1);
-    color: #38a169;
-    border: 1px solid rgba(72, 187, 120, 0.3);
+    display: none;
 }
 
 .content-area {
@@ -249,15 +249,6 @@ h1 {
     flex-direction: column;
     gap: 16px;
     margin-bottom: 70px;
-}
-
-.section-card {
-    background: var(--card-bg);
-    padding: 16px;
-    border-radius: var(--border-radius);
-    border: none;
-    box-shadow: var(--card-shadow);
-    color: var(--text-dark);
 }
 
 h2 {
@@ -538,17 +529,6 @@ button {
     font-size: 0.85rem;
 }
 
-.item-controls {
-    display: flex;
-    gap: 6px;
-}
-
-.item-controls button {
-    padding: 4px 8px;
-    font-size: 0.75rem;
-    margin: 0;
-}
-
 .add-item-form {
     display: grid;
     grid-template-columns: 1fr;
@@ -611,7 +591,7 @@ button {
     font-weight: bold;
 }
 
-/* Menu mobile melhorado */
+/* Menu mobile */
 .mobile-menu {
     display: flex;
     position: fixed;
@@ -650,8 +630,6 @@ select {
     font-family: 'Lato', sans-serif;
     font-size: 0.85rem;
     -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
     background-position: right 10px center;
@@ -754,11 +732,6 @@ select {
     outline: none;
 }
 
-.info-value.editable:hover {
-    border-color: var(--accent-gold);
-    background: rgba(212, 175, 55, 0.1);
-}
-
 .attributes-detailed {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -784,25 +757,12 @@ select {
     font-size: 1.8rem;
     font-weight: bold;
     color: var(--accent-burgundy);
-    margin: 8px 0;
+    margin: 8px auto;
     border: 1px solid transparent;
     border-radius: 4px;
     padding: 4px;
-    transition: var(--transition);
     width: 60px;
-    margin: 8px auto;
     text-align: center;
-}
-
-.attribute-value-detailed:focus {
-    border-color: var(--accent-purple);
-    background: rgba(107, 70, 193, 0.1);
-    outline: none;
-}
-
-.attribute-value-detailed:hover {
-    border-color: var(--accent-gold);
-    background: rgba(212, 175, 55, 0.1);
 }
 
 .attribute-mod-detailed {
@@ -823,7 +783,6 @@ select {
     border-radius: 8px;
     text-align: center;
     border: 3px solid var(--accent-gold);
-    position: relative;
 }
 
 .stat-value-detailed {
@@ -833,21 +792,9 @@ select {
     border: 1px solid transparent;
     border-radius: 4px;
     padding: 4px;
-    transition: var(--transition);
     margin: 0 auto;
     width: 80px;
     text-align: center;
-}
-
-.stat-value-detailed:focus {
-    border-color: var(--accent-purple);
-    background: rgba(107, 70, 193, 0.1);
-    outline: none;
-}
-
-.stat-value-detailed:hover {
-    border-color: var(--accent-gold);
-    background: rgba(212, 175, 55, 0.1);
 }
 
 .stat-label-detailed {
@@ -881,22 +828,7 @@ select {
 .ability-description {
     font-size: 0.9rem;
     color: var(--text-dark);
-    border: 1px solid transparent;
-    border-radius: 4px;
     padding: 8px;
-    transition: var(--transition);
-    min-height: 40px;
-}
-
-.ability-description:focus {
-    border-color: var(--accent-purple);
-    background: rgba(107, 70, 193, 0.1);
-    outline: none;
-}
-
-.ability-description:hover {
-    border-color: var(--accent-gold);
-    background: rgba(212, 175, 55, 0.1);
 }
 
 .inventory-detailed {
@@ -922,18 +854,6 @@ select {
     border: 1px solid transparent;
     border-radius: 4px;
     padding: 4px 8px;
-    transition: var(--transition);
-}
-
-.item-name-detailed:focus {
-    border-color: var(--accent-purple);
-    background: rgba(107, 70, 193, 0.1);
-    outline: none;
-}
-
-.item-name-detailed:hover {
-    border-color: var(--accent-gold);
-    background: rgba(212, 175, 55, 0.1);
 }
 
 .item-weight-detailed {
@@ -944,18 +864,6 @@ select {
     padding: 4px 8px;
     width: 60px;
     text-align: center;
-    transition: var(--transition);
-}
-
-.item-weight-detailed:focus {
-    border-color: var(--accent-purple);
-    background: rgba(107, 70, 193, 0.1);
-    outline: none;
-}
-
-.item-weight-detailed:hover {
-    border-color: var(--accent-gold);
-    background: rgba(212, 175, 55, 0.1);
 }
 
 .item-controls-detailed {
@@ -999,18 +907,6 @@ select {
     font-family: 'Lato', sans-serif;
     font-size: 0.9rem;
     resize: vertical;
-    transition: var(--transition);
-}
-
-.notes-textarea:focus {
-    border-color: var(--accent-purple);
-    background: rgba(107, 70, 193, 0.1);
-    outline: none;
-}
-
-.notes-textarea:hover {
-    border-color: var(--accent-gold);
-    background: rgba(212, 175, 55, 0.1);
 }
 
 .save-button {
@@ -1026,25 +922,11 @@ select {
     font-size: 1rem;
 }
 
-/* Media Queries para tablets */
+/* Media Queries para tablets e desktop */
 @media (min-width: 768px) {
-    body {
-        padding: 16px;
-        font-size: 16px;
-    }
-    
-    header {
-        padding: 25px 16px;
-        margin-bottom: 25px;
-    }
-    
-    h1 {
-        font-size: 2rem;
-    }
-    
-    .subtitle {
-        font-size: 1rem;
-    }
+    body { padding: 16px; font-size: 16px; }
+    header { padding: 25px 16px; margin-bottom: 25px; }
+    h1 { font-size: 2rem; }
     
     .content-area {
         display: grid;
@@ -1053,145 +935,41 @@ select {
         margin-bottom: 25px;
     }
     
-    .section-card {
-        padding: 20px;
-    }
+    .section-card { padding: 20px; }
+    .weight-section, .calculator-section { grid-column: 1 / -1; }
     
-    .weight-section, .calculator-section {
-        grid-column: 1 / -1;
-    }
+    .compact-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .attributes-grid { grid-template-columns: repeat(5, 1fr); }
+    .combat-stats { grid-template-columns: 1fr 1fr; }
+    .customization-options { grid-template-columns: 1fr 1fr; }
+    .weight-info { grid-template-columns: repeat(3, 1fr); }
+    .weight-limits { grid-template-columns: repeat(2, 1fr); }
+    .add-item-form { grid-template-columns: 2fr 1fr 1fr; }
+    .calculator-grid { grid-template-columns: 1fr 1fr; }
     
-    h2 {
-        font-size: 1.4rem;
-    }
-    
-    .compact-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-    }
-    
-    .attributes-grid {
-        grid-template-columns: repeat(5, 1fr);
-    }
-    
-    .combat-stats {
-        grid-template-columns: 1fr 1fr;
-    }
-    
-    .customization-options {
-        grid-template-columns: 1fr 1fr;
-    }
-    
-    .weight-info {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    
-    .weight-limits {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .add-item-form {
-        grid-template-columns: 2fr 1fr 1fr;
-    }
-    
-    .calculator-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-    
-    .mobile-menu {
-        display: none;
-    }
+    .mobile-menu { display: none; }
 
     /* Nova Aba - Tablet */
-    .attributes-detailed {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .info-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .combat-stats-detailed {
-        grid-template-columns: repeat(4, 1fr);
-    }
+    .attributes-detailed { grid-template-columns: repeat(3, 1fr); }
+    .info-grid { grid-template-columns: repeat(2, 1fr); }
+    .combat-stats-detailed { grid-template-columns: repeat(4, 1fr); }
 }
 
 @media (min-width: 1024px) {
-    .content-area {
-        grid-template-columns: 1fr 1fr;
-        gap: 25px;
-    }
-    
-    .section-card {
-        padding: 25px;
-    }
-    
-    .weight-limits {
-        grid-template-columns: repeat(4, 1fr);
-    }
-
-    /* Nova Aba - Desktop */
-    .attributes-detailed {
-        grid-template-columns: repeat(5, 1fr);
-    }
-
-    .info-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
+    .content-area { gap: 25px; }
+    .weight-limits { grid-template-columns: repeat(4, 1fr); }
+    .attributes-detailed { grid-template-columns: repeat(5, 1fr); }
+    .info-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
-/* Utilitários para mobile */
-.text-small {
-    font-size: 0.8rem;
-}
-
-.text-xsmall {
-    font-size: 0.75rem;
-}
-
+.text-small { font-size: 0.8rem; }
+.text-xsmall { font-size: 0.75rem; }
 .mb-1 { margin-bottom: 8px; }
 .mb-2 { margin-bottom: 12px; }
 .mt-1 { margin-top: 8px; }
 .mt-2 { margin-top: 12px; }
 
-/* Ajustes para telas muito pequenas */
-@media (max-width: 360px) {
-    body {
-        padding: 8px;
-        font-size: 13px;
-    }
-    
-    header {
-        padding: 16px 8px;
-    }
-    
-    h1 {
-        font-size: 1.4rem;
-    }
-    
-    .section-card {
-        padding: 12px;
-    }
-    
-    .rule-card, .character-sheet, .special-rule {
-        padding: 10px;
-    }
-    
-    .attributes-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* Remove hover effects on touch devices */
+/* Remove hover em touch */
 @media (hover: none) {
-    button:hover, .race-card:hover, .class-card:hover,
-    .attribute-card:hover, .combat-stat:hover,
-    .rule-card:hover {
-        transform: none;
-    }
-}
-
-/* PDF (oculto na visualização principal) */
-#pdf-sheet {
-    display: none;
+    button:hover, .race-card:hover, .class-card:hover { transform: none; }
 }
